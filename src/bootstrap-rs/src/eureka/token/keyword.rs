@@ -1,3 +1,5 @@
+use super::name::lex_unquoted_name;
+
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Keyword {
     Fn,
@@ -12,12 +14,13 @@ impl Keyword {
         ("return", Keyword::Return),
     ];
 
-    fn lex(src: &str) -> Option<(Keyword, &str)> {
-        if let Some((name, remaining_src)) = super::name::lex_unquoted_name(src) {
+    pub fn lex(src: &str) -> Option<(Keyword, &str)> {
+        if let Some((name, remaining_src)) = lex_unquoted_name(src) {
             if let Ok(index) = Keyword::MAP.binary_search_by_key(&name, |&(key, _)| key) {
                 return Some((Keyword::MAP[index].1, remaining_src));
             }
         }
+
         None
     }
 }
