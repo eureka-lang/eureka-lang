@@ -2,7 +2,7 @@ use unquoted_identifier::UnquotedIdentifier;
 
 mod unquoted_identifier;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Identifier<'a> {
     Unquoted(UnquotedIdentifier<'a>),
 }
