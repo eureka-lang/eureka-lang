@@ -1,6 +1,6 @@
 use unquoted_identifier::UnquotedIdentifier;
 
-mod unquoted_identifier;
+pub mod unquoted_identifier;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Identifier<'a> {
@@ -14,5 +14,11 @@ impl<'a> Identifier<'a> {
         }
 
         None
+    }
+}
+
+impl<'a> From<UnquotedIdentifier<'a>> for Identifier<'a> {
+    fn from(value: UnquotedIdentifier) -> Identifier {
+        Identifier::Unquoted(value)
     }
 }
