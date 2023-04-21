@@ -2,12 +2,12 @@ use unquoted_identifier::UnquotedIdentifier;
 
 pub mod unquoted_identifier;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub enum Identifier<'a> {
-    Unquoted(UnquotedIdentifier<'a>),
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum Identifier {
+    Unquoted(UnquotedIdentifier),
 }
 
-impl<'a> Identifier<'a> {
+impl Identifier {
     pub fn lex(src: &str) -> Option<(Identifier, &str)> {
         if let Some((identifier, remaining_src)) = UnquotedIdentifier::lex(src) {
             return Some((Identifier::Unquoted(identifier), remaining_src));
@@ -17,7 +17,7 @@ impl<'a> Identifier<'a> {
     }
 }
 
-impl<'a> From<UnquotedIdentifier<'a>> for Identifier<'a> {
+impl From<UnquotedIdentifier> for Identifier {
     fn from(value: UnquotedIdentifier) -> Identifier {
         Identifier::Unquoted(value)
     }

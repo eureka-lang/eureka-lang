@@ -1,11 +1,11 @@
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct Padding<'a> {
-    value: &'a str,
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct Padding {
+    value: String,
 }
 
-impl<'a> Padding<'a> {
+impl Padding {
     pub fn as_str(&self) -> &str {
-        self.value
+        self.value.as_str()
     }
 
     pub fn lex(src: &str) -> Option<(Padding, &str)> {
@@ -32,7 +32,10 @@ impl<'a> Padding<'a> {
         let len = src.len() - remaining_src.len();
         assert!(len > 0);
 
-        let padding = Padding { value: &src[..len] };
+        let padding = Padding {
+            value: String::from(&src[..len]),
+        };
+
         Some((padding, remaining_src))
     }
 }

@@ -10,40 +10,40 @@ mod name;
 mod padding;
 mod punctuator;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-enum Token<'a> {
-    Identifier(Identifier<'a>),
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+enum Token {
+    Identifier(Identifier),
     Keyword(Keyword),
-    Padding(Padding<'a>),
+    Padding(Padding),
     Punctuator(Punctuator),
 }
 
-impl<'a> From<Identifier<'a>> for Token<'a> {
+impl From<Identifier> for Token {
     fn from(value: Identifier) -> Token {
         Token::Identifier(value)
     }
 }
 
-impl<'a> From<UnquotedIdentifier<'a>> for Token<'a> {
+impl From<UnquotedIdentifier> for Token {
     fn from(value: UnquotedIdentifier) -> Token {
         Token::Identifier(value.into())
     }
 }
 
-impl<'a> From<Keyword> for Token<'a> {
-    fn from(value: Keyword) -> Token<'a> {
+impl From<Keyword> for Token {
+    fn from(value: Keyword) -> Token {
         Token::Keyword(value)
     }
 }
 
-impl<'a> From<Padding<'a>> for Token<'a> {
+impl From<Padding> for Token {
     fn from(value: Padding) -> Token {
         Token::Padding(value)
     }
 }
 
-impl<'a> From<Punctuator> for Token<'a> {
-    fn from(value: Punctuator) -> Token<'a> {
+impl From<Punctuator> for Token {
+    fn from(value: Punctuator) -> Token {
         Token::Punctuator(value)
     }
 }
