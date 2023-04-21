@@ -6,6 +6,7 @@ use punctuator::Punctuator;
 
 mod identifier;
 mod keyword;
+mod lex;
 mod name;
 mod padding;
 mod punctuator;

@@ -1,3 +1,5 @@
+use super::lex;
+
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Padding {
     value: String,
@@ -6,6 +8,10 @@ pub struct Padding {
 impl Padding {
     pub fn as_str(&self) -> &str {
         self.value.as_str()
+    }
+
+    pub fn new(value: &str) -> Padding {
+        lex::entirely(Padding::lex)(value)
     }
 
     pub fn lex(src: &str) -> Option<(Padding, &str)> {
@@ -77,6 +83,24 @@ fn skip_whitespace(src: &str) -> Option<&str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn new_succeeds() {
+        let padding = Padding::new(" ");
+        assert_eq!(" ", padding.value);
+    }
+
+    #[test]
+    #[should_panic(expected = "invalid value")]
+    fn new_fails_if_value_does_not_start_with_padding() {
+        let _ = Padding::new("x");
+    }
+
+    #[test]
+    #[should_panic(expected = "invalid value")]
+    fn new_fails_if_value_is_not_entirely_padding() {
+        let _ = Padding::new(" x");
+    }
 
     #[test]
     fn lex_succeeds() {

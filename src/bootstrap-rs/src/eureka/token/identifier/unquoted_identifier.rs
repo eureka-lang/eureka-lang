@@ -1,4 +1,5 @@
 use super::super::keyword::Keyword;
+use super::super::lex;
 use super::super::name::lex_unquoted_name;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -9,6 +10,10 @@ pub struct UnquotedIdentifier {
 impl UnquotedIdentifier {
     pub fn as_str(&self) -> &str {
         self.value.as_str()
+    }
+
+    pub fn new(value: &str) -> UnquotedIdentifier {
+        lex::entirely(UnquotedIdentifier::lex)(value)
     }
 
     pub fn lex(src: &str) -> Option<(UnquotedIdentifier, &str)> {
@@ -31,6 +36,24 @@ impl UnquotedIdentifier {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn new_succeeds() {
+        let identifier = UnquotedIdentifier::new("i");
+        assert_eq!("i", identifier.value);
+    }
+
+    #[test]
+    #[should_panic(expected = "invalid value")]
+    fn new_fails_if_value_is_keyword() {
+        let _ = UnquotedIdentifier::new("if");
+    }
+
+    #[test]
+    #[should_panic(expected = "invalid value")]
+    fn new_fails_if_value_is_not_entirely_identifier() {
+        let _ = UnquotedIdentifier::new("i+");
+    }
 
     #[test]
     fn lex_succeeds() {
