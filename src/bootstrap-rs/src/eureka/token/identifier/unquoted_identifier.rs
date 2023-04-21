@@ -1,35 +1,41 @@
-use super::super::keyword::Keyword;
 use super::super::lex;
-use super::super::name::lex_unquoted_name;
+pub use restricted::UnquotedIdentifier;
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct UnquotedIdentifier {
-    value: String,
+mod restricted {
+    use super::super::super::keyword::Keyword;
+    use super::super::super::name::lex_unquoted_name;
+
+    #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+    pub struct UnquotedIdentifier {
+        value: String,
+    }
+
+    impl UnquotedIdentifier {
+        pub fn as_str(&self) -> &str {
+            self.value.as_str()
+        }
+
+        pub fn lex(src: &str) -> Option<(UnquotedIdentifier, &str)> {
+            if Keyword::lex(src).is_some() {
+                return None;
+            }
+
+            if let Some((name, remaining_src)) = lex_unquoted_name(src) {
+                let identifier = UnquotedIdentifier {
+                    value: String::from(name),
+                };
+
+                return Some((identifier, remaining_src));
+            }
+
+            None
+        }
+    }
 }
 
 impl UnquotedIdentifier {
-    pub fn as_str(&self) -> &str {
-        self.value.as_str()
-    }
-
     pub fn new(value: &str) -> UnquotedIdentifier {
         lex::entirely(UnquotedIdentifier::lex)(value)
-    }
-
-    pub fn lex(src: &str) -> Option<(UnquotedIdentifier, &str)> {
-        if Keyword::lex(src).is_some() {
-            return None;
-        }
-
-        if let Some((name, remaining_src)) = lex_unquoted_name(src) {
-            let identifier = UnquotedIdentifier {
-                value: String::from(name),
-            };
-
-            return Some((identifier, remaining_src));
-        }
-
-        None
     }
 }
 
@@ -40,7 +46,7 @@ mod tests {
     #[test]
     fn new_succeeds() {
         let identifier = UnquotedIdentifier::new("i");
-        assert_eq!("i", identifier.value);
+        assert_eq!("i", identifier.as_str());
     }
 
     #[test]

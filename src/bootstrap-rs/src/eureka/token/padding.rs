@@ -1,48 +1,47 @@
 use super::lex;
+pub use restricted::Padding;
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Padding {
-    value: String,
-}
-
-impl Padding {
-    pub fn as_str(&self) -> &str {
-        self.value.as_str()
+mod restricted {
+    #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+    pub struct Padding {
+        value: String,
     }
 
-    pub fn new(value: &str) -> Padding {
-        lex::entirely(Padding::lex)(value)
-    }
-
-    pub fn lex(src: &str) -> Option<(Padding, &str)> {
-        let mut remaining_src;
-
-        if let Some(new_remaining_src) = skip_whitespace(src) {
-            remaining_src = new_remaining_src;
-        } else if let Some(new_remaining_src) = skip_comment(src) {
-            remaining_src = new_remaining_src;
-        } else {
-            return None;
+    impl Padding {
+        pub fn as_str(&self) -> &str {
+            self.value.as_str()
         }
 
-        loop {
-            if let Some(new_remaining_src) = skip_whitespace(remaining_src) {
+        pub fn lex(src: &str) -> Option<(Padding, &str)> {
+            let mut remaining_src;
+
+            if let Some(new_remaining_src) = super::skip_whitespace(src) {
                 remaining_src = new_remaining_src;
-            } else if let Some(new_remaining_src) = skip_comment(remaining_src) {
+            } else if let Some(new_remaining_src) = super::skip_comment(src) {
                 remaining_src = new_remaining_src;
             } else {
-                break;
+                return None;
             }
+
+            loop {
+                if let Some(new_remaining_src) = super::skip_whitespace(remaining_src) {
+                    remaining_src = new_remaining_src;
+                } else if let Some(new_remaining_src) = super::skip_comment(remaining_src) {
+                    remaining_src = new_remaining_src;
+                } else {
+                    break;
+                }
+            }
+
+            let len = src.len() - remaining_src.len();
+            assert!(len > 0);
+
+            let padding = Padding {
+                value: String::from(&src[..len]),
+            };
+
+            Some((padding, remaining_src))
         }
-
-        let len = src.len() - remaining_src.len();
-        assert!(len > 0);
-
-        let padding = Padding {
-            value: String::from(&src[..len]),
-        };
-
-        Some((padding, remaining_src))
     }
 }
 
@@ -80,6 +79,12 @@ fn skip_whitespace(src: &str) -> Option<&str> {
     None
 }
 
+impl Padding {
+    pub fn new(value: &str) -> Padding {
+        lex::entirely(Padding::lex)(value)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -87,7 +92,7 @@ mod tests {
     #[test]
     fn new_succeeds() {
         let padding = Padding::new(" ");
-        assert_eq!(" ", padding.value);
+        assert_eq!(" ", padding.as_str());
     }
 
     #[test]
