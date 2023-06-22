@@ -1,9 +1,9 @@
-use super::super::lex;
+use super::lex;
 pub use restricted::UnquotedIdentifier;
 
 mod restricted {
-    use super::super::super::keyword::Keyword;
-    use super::super::super::name::lex_unquoted_name;
+    use super::super::keyword::Keyword;
+    use super::super::name::lex_unquoted_name;
 
     #[derive(Clone, Debug, Eq, Hash, PartialEq)]
     pub struct UnquotedIdentifier {

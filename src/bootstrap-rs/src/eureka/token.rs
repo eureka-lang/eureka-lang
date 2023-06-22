@@ -1,8 +1,8 @@
-use identifier::unquoted_identifier::UnquotedIdentifier;
 use identifier::Identifier;
 use keyword::Keyword;
 use padding::Padding;
 use punctuator::Punctuator;
+use unquoted_identifier::UnquotedIdentifier;
 
 mod identifier;
 mod keyword;
@@ -10,6 +10,7 @@ mod lex;
 mod name;
 mod padding;
 mod punctuator;
+mod unquoted_identifier;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 enum Token {

@@ -1,6 +1,4 @@
-use unquoted_identifier::UnquotedIdentifier;
-
-pub mod unquoted_identifier;
+use super::unquoted_identifier::UnquotedIdentifier;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Identifier {
