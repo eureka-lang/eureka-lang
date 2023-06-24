@@ -29,6 +29,14 @@ impl Keyword {
 
         None
     }
+
+    pub fn len(&self) -> usize {
+        let index = Keyword::REVERSE_MAP
+            .binary_search_by_key(self, |&(key, _)| key)
+            .unwrap();
+
+        Keyword::REVERSE_MAP[index].1.len()
+    }
 }
 
 #[cfg(test)]
@@ -80,5 +88,11 @@ mod tests {
             assert_eq!(s1, s2);
             assert_eq!(k1, k2);
         }
+    }
+
+    #[test]
+    fn keyword_len() {
+        assert_eq!(Keyword::Fn.len(), 2);
+        assert_eq!(Keyword::Return.len(), 6);
     }
 }
