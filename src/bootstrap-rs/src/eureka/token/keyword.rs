@@ -1,6 +1,6 @@
 use super::name::lex_unquoted_name;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Keyword {
     Fn,
     If,
@@ -12,6 +12,12 @@ impl Keyword {
         ("fn", Keyword::Fn),
         ("if", Keyword::If),
         ("return", Keyword::Return),
+    ];
+
+    const REVERSE_MAP: [(Keyword, &str); 3] = [
+        (Keyword::Fn, "fn"),
+        (Keyword::If, "if"),
+        (Keyword::Return, "return"),
     ];
 
     pub fn lex(src: &str) -> Option<(Keyword, &str)> {
@@ -56,5 +62,23 @@ mod tests {
         let mut map = Keyword::MAP.to_vec();
         map.sort_by_key(|&(key, _)| key);
         assert_eq!(map, Keyword::MAP.to_vec());
+    }
+
+    #[test]
+    fn reverse_map_is_sorted() {
+        let mut map = Keyword::REVERSE_MAP.to_vec();
+        map.sort_by_key(|&(key, _)| key);
+        assert_eq!(map, Keyword::REVERSE_MAP.to_vec());
+    }
+
+    #[test]
+    fn reverse_map_is_consistent_with_map() {
+        assert_eq!(Keyword::MAP.len(), Keyword::REVERSE_MAP.len());
+
+        let zip = Keyword::MAP.iter().zip(Keyword::REVERSE_MAP.iter());
+        for ((s1, k1), (k2, s2)) in zip {
+            assert_eq!(s1, s2);
+            assert_eq!(k1, k2);
+        }
     }
 }
