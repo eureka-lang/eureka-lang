@@ -40,6 +40,21 @@ impl Token {
 
         None
     }
+
+    pub fn lex_all(mut src: &str) -> Option<Vec<Token>> {
+        let mut result = Vec::new();
+
+        while !src.is_empty() {
+            if let Some((token, remaining_src)) = Token::lex(src) {
+                result.push(token);
+                src = remaining_src;
+            } else {
+                return None;
+            }
+        }
+
+        Some(result)
+    }
 }
 
 impl From<Identifier> for Token {
@@ -108,9 +123,40 @@ mod tests {
     }
 
     #[test]
+    fn lex_all_empty_main() {
+        let src = "fn main() {}";
+        let actual_tokens = Token::lex_all(src).unwrap();
+        let expected_tokens: Vec<Token> = vec![
+            Keyword::Fn.into(),
+            Padding::new(" ").into(),
+            UnquotedIdentifier::new("main").into(),
+            Punctuator::LeftParenthesis.into(),
+            Punctuator::RightParenthesis.into(),
+            Padding::new(" ").into(),
+            Punctuator::LeftBrace.into(),
+            Punctuator::RightBrace.into(),
+        ];
+
+        assert_eq!(expected_tokens, actual_tokens);
+    }
+
+    #[test]
+    fn lex_all_empty_string() {
+        let tokens = Token::lex_all("").unwrap();
+        assert!(tokens.is_empty());
+    }
+
+    #[test]
     fn lex_fails() {
         for src in ["", "\0", "\x1B"] {
             assert!(Token::lex(src).is_none());
+        }
+    }
+
+    #[test]
+    fn lex_all_fails() {
+        for src in ["\0", "\x1B"] {
+            assert!(Token::lex_all(src).is_none());
         }
     }
 }
