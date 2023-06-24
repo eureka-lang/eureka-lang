@@ -20,6 +20,15 @@ impl Punctuator {
 
         Some((punctuator, chars.as_str()))
     }
+
+    pub fn len(&self) -> usize {
+        match self {
+            Self::LeftParenthesis => 1,
+            Self::RightParenthesis => 1,
+            Self::LeftBrace => 1,
+            Self::RightBrace => 1,
+        }
+    }
 }
 
 #[cfg(test)]
