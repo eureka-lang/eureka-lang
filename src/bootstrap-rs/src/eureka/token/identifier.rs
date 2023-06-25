@@ -1,4 +1,5 @@
 use super::unquoted_identifier::UnquotedIdentifier;
+use crate::text::Position;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Identifier {
@@ -12,6 +13,12 @@ impl Identifier {
         }
 
         None
+    }
+
+    pub fn relative_end(&self) -> Position {
+        match self {
+            Self::Unquoted(identifier) => identifier.relative_end(),
+        }
     }
 }
 

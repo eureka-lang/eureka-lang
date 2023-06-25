@@ -1,3 +1,5 @@
+use crate::text::Position;
+
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Punctuator {
     LeftParenthesis,
@@ -29,6 +31,10 @@ impl Punctuator {
             Self::RightBrace => 1,
         }
     }
+
+    pub fn relative_end(&self) -> Position {
+        Position::new(1, self.len() + 1)
+    }
 }
 
 #[cfg(test)]
@@ -55,5 +61,17 @@ mod tests {
         for src in ["", "x", "1", "if", " ", "#"] {
             assert!(Punctuator::lex(src).is_none());
         }
+    }
+
+    #[test]
+    fn relative_end() {
+        assert_eq!(
+            Punctuator::LeftParenthesis.relative_end(),
+            Position::new(1, 2),
+        );
+        assert_eq!(
+            Punctuator::RightParenthesis.relative_end(),
+            Position::new(1, 2),
+        );
     }
 }

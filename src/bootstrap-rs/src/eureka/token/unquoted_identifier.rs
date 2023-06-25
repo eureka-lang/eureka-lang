@@ -1,4 +1,5 @@
 use super::lex;
+use crate::text::Position;
 pub use restricted::UnquotedIdentifier;
 
 mod restricted {
@@ -36,6 +37,10 @@ mod restricted {
 impl UnquotedIdentifier {
     pub fn new(value: &str) -> UnquotedIdentifier {
         lex::entirely(UnquotedIdentifier::lex)(value)
+    }
+
+    pub fn relative_end(&self) -> Position {
+        Position::new(1, self.as_str().len() + 1)
     }
 }
 
@@ -82,5 +87,17 @@ mod tests {
         for src in ["", "99", "if", "return", "#if", "+"] {
             assert!(UnquotedIdentifier::lex(src).is_none());
         }
+    }
+
+    #[test]
+    fn relative_end() {
+        assert_eq!(
+            UnquotedIdentifier::new("a").relative_end(),
+            Position::new(1, 2),
+        );
+        assert_eq!(
+            UnquotedIdentifier::new("a_b").relative_end(),
+            Position::new(1, 4),
+        );
     }
 }

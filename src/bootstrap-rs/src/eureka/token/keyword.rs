@@ -1,4 +1,5 @@
 use super::name::lex_unquoted_name;
+use crate::text::Position;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Keyword {
@@ -36,6 +37,10 @@ impl Keyword {
             .unwrap();
 
         Keyword::REVERSE_MAP[index].1.len()
+    }
+
+    pub fn relative_end(&self) -> Position {
+        Position::new(1, self.len() + 1)
     }
 }
 
@@ -94,5 +99,11 @@ mod tests {
     fn keyword_len() {
         assert_eq!(Keyword::Fn.len(), 2);
         assert_eq!(Keyword::Return.len(), 6);
+    }
+
+    #[test]
+    fn relative_end() {
+        assert_eq!(Keyword::Fn.relative_end(), Position::new(1, 3));
+        assert_eq!(Keyword::Return.relative_end(), Position::new(1, 7));
     }
 }

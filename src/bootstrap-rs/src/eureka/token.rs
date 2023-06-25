@@ -1,3 +1,4 @@
+use crate::text::Position;
 use identifier::Identifier;
 use keyword::Keyword;
 use padding::Padding;
@@ -54,6 +55,15 @@ impl Token {
         }
 
         Some(result)
+    }
+
+    pub fn relative_end(&self) -> Position {
+        match self {
+            Self::Identifier(identifier) => identifier.relative_end(),
+            Self::Keyword(keyword) => keyword.relative_end(),
+            Self::Padding(padding) => padding.relative_end(),
+            Self::Punctuator(punctuator) => punctuator.relative_end(),
+        }
     }
 }
 
