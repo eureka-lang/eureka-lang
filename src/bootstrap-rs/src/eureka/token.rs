@@ -42,19 +42,21 @@ impl Token {
         None
     }
 
-    pub fn lex_all(mut src: &str) -> Option<Vec<Token>> {
+    pub fn lex_all(mut src: &str) -> Result<Vec<Token>, Position> {
         let mut result = Vec::new();
+        let mut current_position = Position::new(1, 1);
 
         while !src.is_empty() {
             if let Some((token, remaining_src)) = Token::lex(src) {
+                current_position.relative_move(token.relative_end());
                 result.push(token);
                 src = remaining_src;
             } else {
-                return None;
+                return Err(current_position);
             }
         }
 
-        Some(result)
+        Ok(result)
     }
 
     pub fn relative_end(&self) -> Position {
@@ -165,8 +167,20 @@ mod tests {
 
     #[test]
     fn lex_all_fails() {
-        for src in ["\0", "\x1B"] {
-            assert!(Token::lex_all(src).is_none());
-        }
+        assert_eq!(Token::lex_all("\x1B"), Err(Position::new(1, 1)));
+
+        assert_eq!(Token::lex_all("\0"), Err(Position::new(1, 1)));
+        assert_eq!(Token::lex_all("fn\0"), Err(Position::new(1, 3)));
+        assert_eq!(Token::lex_all("fn \0"), Err(Position::new(1, 4)));
+        assert_eq!(Token::lex_all("fn main\0"), Err(Position::new(1, 8)));
+        assert_eq!(Token::lex_all("fn main(\0"), Err(Position::new(1, 9)));
+        assert_eq!(Token::lex_all("fn main()\0"), Err(Position::new(1, 10)));
+        assert_eq!(Token::lex_all("fn main()\n\0"), Err(Position::new(2, 1)));
+        assert_eq!(Token::lex_all("fn main()\n{\0"), Err(Position::new(2, 2)));
+        assert_eq!(Token::lex_all("fn main()\n{\n\0"), Err(Position::new(3, 1)));
+        assert_eq!(
+            Token::lex_all("fn main()\n{\n}\0"),
+            Err(Position::new(3, 2)),
+        );
     }
 }
