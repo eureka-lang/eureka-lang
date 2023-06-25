@@ -1,9 +1,9 @@
 use crate::text::Position;
-use identifier::Identifier;
-use keyword::Keyword;
-use padding::Padding;
-use punctuator::Punctuator;
-use unquoted_identifier::UnquotedIdentifier;
+pub use identifier::Identifier;
+pub use keyword::Keyword;
+pub use padding::Padding;
+pub use punctuator::Punctuator;
+pub use unquoted_identifier::UnquotedIdentifier;
 
 mod identifier;
 mod keyword;
@@ -14,7 +14,7 @@ mod punctuator;
 mod unquoted_identifier;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-enum Token {
+pub enum Token {
     Identifier(Identifier),
     Keyword(Keyword),
     Padding(Padding),
