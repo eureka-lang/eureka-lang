@@ -1,4 +1,5 @@
 use super::lex;
+use crate::text::Position;
 pub use restricted::Padding;
 
 mod restricted {
@@ -82,6 +83,18 @@ fn skip_whitespace(src: &str) -> Option<&str> {
 impl Padding {
     pub fn new(value: &str) -> Padding {
         lex::entirely(Padding::lex)(value)
+    }
+
+    pub fn relative_end(&self) -> Position {
+        let mut line_count = 0;
+        let mut previous_line = "";
+
+        for line in self.as_str().split('\n') {
+            line_count += 1;
+            previous_line = line;
+        }
+
+        Position::new(line_count, previous_line.len() + 1)
     }
 }
 
@@ -197,5 +210,28 @@ mod tests {
         ] {
             assert_eq!(expected_result, skip_whitespace(src));
         }
+    }
+
+    #[test]
+    fn padding_relative_end() {
+        assert_eq!(Padding::new(" ").relative_end(), Position::new(1, 2));
+        assert_eq!(Padding::new("\t\t").relative_end(), Position::new(1, 3));
+        assert_eq!(Padding::new("\n").relative_end(), Position::new(2, 1));
+        assert_eq!(Padding::new("\r\n").relative_end(), Position::new(2, 1));
+        assert_eq!(Padding::new("\n\n").relative_end(), Position::new(3, 1));
+        assert_eq!(Padding::new("\r\n\r\n").relative_end(), Position::new(3, 1));
+        assert_eq!(Padding::new("\t\t\n ").relative_end(), Position::new(2, 2));
+        assert_eq!(
+            Padding::new(" \r\n\t\t").relative_end(),
+            Position::new(2, 3),
+        );
+        assert_eq!(
+            Padding::new(" \n#c\n    ").relative_end(),
+            Position::new(3, 5),
+        );
+        assert_eq!(
+            Padding::new("#c\r\n\t\r\n\t").relative_end(),
+            Position::new(3, 2),
+        );
     }
 }
