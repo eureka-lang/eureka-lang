@@ -3,6 +3,7 @@ pub use identifier::Identifier;
 pub use keyword::Keyword;
 pub use padding::Padding;
 pub use punctuator::Punctuator;
+pub use tokens::Tokens;
 pub use unquoted_identifier::UnquotedIdentifier;
 
 mod identifier;
@@ -11,6 +12,7 @@ mod lex;
 mod name;
 mod padding;
 mod punctuator;
+mod tokens;
 mod unquoted_identifier;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
