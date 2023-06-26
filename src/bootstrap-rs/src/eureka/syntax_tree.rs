@@ -1,5 +1,7 @@
 use crate::eureka::token::{Identifier, Padding};
 
+mod parse;
+
 struct SyntaxTree {
     definitions: Vec<FunctionDefinition>,
     post_definitions_padding: Option<Padding>,
