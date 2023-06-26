@@ -9,6 +9,10 @@ pub fn optional_padding(tokens: &mut Tokens) -> Option<Padding> {
     }
 }
 
+pub fn padding(tokens: &mut Tokens) -> Result<Padding, String> {
+    optional_padding(tokens).ok_or_else(|| "missing padding".to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -29,6 +33,24 @@ mod tests {
         let padding2 = optional_padding(&mut tokens);
 
         assert_eq!(padding2, None);
+        assert_eq!(tokens.peek(), Some(&Token::Keyword(Keyword::Fn)));
+    }
+
+    #[test]
+    fn test_padding() {
+        let tokens = Token::lex_all(" fn").unwrap();
+        let mut tokens = Tokens::new(tokens);
+
+        assert_eq!(tokens.peek(), Some(&Token::Padding(Padding::new(" "))));
+
+        let padding1 = padding(&mut tokens);
+
+        assert_eq!(padding1, Ok(Padding::new(" ")));
+        assert_eq!(tokens.peek(), Some(&Token::Keyword(Keyword::Fn)));
+
+        let padding2 = padding(&mut tokens);
+
+        assert_eq!(padding2, Err("missing padding".to_string()));
         assert_eq!(tokens.peek(), Some(&Token::Keyword(Keyword::Fn)));
     }
 }
