@@ -15,6 +15,10 @@ impl Tokens {
         }
     }
 
+    pub fn lex_all(src: &str) -> Result<Tokens, Position> {
+        Token::lex_all(src).map(Tokens::new)
+    }
+
     pub fn peek(&self) -> Option<&Token> {
         self.values.last()
     }
@@ -50,8 +54,7 @@ mod tests {
 
     #[test]
     fn tokens() {
-        let tokens = Token::lex_all("fn example").unwrap();
-        let mut tokens = Tokens::new(tokens);
+        let mut tokens = Tokens::lex_all("fn example").unwrap();
 
         assert_eq!(tokens.position(), Position::new(1, 1));
         assert_eq!(tokens.peek(), Some(&Token::from(Keyword::Fn)));

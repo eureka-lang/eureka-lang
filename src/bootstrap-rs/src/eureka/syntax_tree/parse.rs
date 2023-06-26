@@ -20,8 +20,7 @@ mod tests {
 
     #[test]
     fn test_optional_padding() {
-        let tokens = Token::lex_all(" fn").unwrap();
-        let mut tokens = Tokens::new(tokens);
+        let mut tokens = Tokens::lex_all(" fn").unwrap();
 
         assert_eq!(tokens.peek(), Some(&Token::Padding(Padding::new(" "))));
 
@@ -38,8 +37,7 @@ mod tests {
 
     #[test]
     fn test_padding() {
-        let tokens = Token::lex_all(" fn").unwrap();
-        let mut tokens = Tokens::new(tokens);
+        let mut tokens = Tokens::lex_all(" fn").unwrap();
 
         assert_eq!(tokens.peek(), Some(&Token::Padding(Padding::new(" "))));
 
