@@ -40,7 +40,7 @@ impl Tokens {
 
 #[cfg(test)]
 mod tests {
-    use super::super::{Keyword, Padding, UnquotedIdentifier};
+    use super::super::{Identifier, Keyword, Padding};
     use super::*;
 
     #[test]
@@ -67,12 +67,9 @@ mod tests {
         assert_eq!(tokens.position(), Position::new(1, 4));
         assert_eq!(
             tokens.peek(),
-            Some(&Token::from(UnquotedIdentifier::new("example"))),
+            Some(&Token::from(Identifier::new("example"))),
         );
-        assert_eq!(
-            tokens.pop(),
-            Some(Token::from(UnquotedIdentifier::new("example"))),
-        );
+        assert_eq!(tokens.pop(), Some(Token::from(Identifier::new("example"))));
 
         assert_eq!(tokens.position(), Position::new(1, 11));
         assert_eq!(tokens.peek(), None);

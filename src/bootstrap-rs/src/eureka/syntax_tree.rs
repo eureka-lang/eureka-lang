@@ -1,4 +1,4 @@
-use crate::eureka::token::{Padding, UnquotedIdentifier};
+use crate::eureka::token::{Identifier, Padding};
 
 mod parse;
 
@@ -11,7 +11,7 @@ struct FunctionDefinition {
     pre_keyword_padding: Option<Padding>,
     // Keyword::Fn
     pre_identifier_padding: Padding,
-    identifier: UnquotedIdentifier,
+    identifier: Identifier,
     pre_parenthesis_padding: Option<Padding>,
     // Punctuator::LeftParenthesis
     // Punctuator::RightParenthesis

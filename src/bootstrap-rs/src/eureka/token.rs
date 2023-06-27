@@ -1,21 +1,21 @@
 use crate::text::Position;
+pub use identifier::Identifier;
 pub use keyword::Keyword;
 pub use padding::Padding;
 pub use punctuator::Punctuator;
 pub use tokens::Tokens;
-pub use unquoted_identifier::UnquotedIdentifier;
 
+mod identifier;
 mod keyword;
 mod lex;
 mod name;
 mod padding;
 mod punctuator;
 mod tokens;
-mod unquoted_identifier;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Token {
-    Identifier(UnquotedIdentifier),
+    Identifier(Identifier),
     Keyword(Keyword),
     Padding(Padding),
     Punctuator(Punctuator),
@@ -23,7 +23,7 @@ pub enum Token {
 
 impl Token {
     pub fn lex(src: &str) -> Option<(Token, &str)> {
-        if let Some((identifier, remaining_src)) = UnquotedIdentifier::lex(src) {
+        if let Some((identifier, remaining_src)) = Identifier::lex(src) {
             return Some((identifier.into(), remaining_src));
         }
 
@@ -69,8 +69,8 @@ impl Token {
     }
 }
 
-impl From<UnquotedIdentifier> for Token {
-    fn from(value: UnquotedIdentifier) -> Token {
+impl From<Identifier> for Token {
+    fn from(value: Identifier) -> Token {
         Token::Identifier(value)
     }
 }
@@ -108,7 +108,7 @@ mod tests {
         assert_eq!(token, Padding::new(" ").into());
 
         let (token, src) = Token::lex(src).unwrap();
-        assert_eq!(token, UnquotedIdentifier::new("main").into());
+        assert_eq!(token, Identifier::new("main").into());
 
         let (token, src) = Token::lex(src).unwrap();
         assert_eq!(token, Punctuator::LeftParenthesis.into());
@@ -135,7 +135,7 @@ mod tests {
         let expected_tokens: Vec<Token> = vec![
             Keyword::Fn.into(),
             Padding::new(" ").into(),
-            UnquotedIdentifier::new("main").into(),
+            Identifier::new("main").into(),
             Punctuator::LeftParenthesis.into(),
             Punctuator::RightParenthesis.into(),
             Padding::new(" ").into(),
