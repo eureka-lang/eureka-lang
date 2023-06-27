@@ -1,5 +1,5 @@
 use crate::eureka::token::{Token, Tokens};
-use crate::miscellaneous::DisplayName;
+use crate::miscellaneous::{missing, DisplayName};
 
 pub fn optional<T: TryFrom<Token>>(tokens: &mut Tokens) -> Option<T> {
     if let Some(token) = tokens.peek().cloned() {
@@ -13,7 +13,7 @@ pub fn optional<T: TryFrom<Token>>(tokens: &mut Tokens) -> Option<T> {
 }
 
 pub fn required<T: DisplayName + TryFrom<Token>>(tokens: &mut Tokens) -> Result<T, String> {
-    optional::<T>(tokens).ok_or_else(|| format!("missing {}", T::display_name()))
+    optional::<T>(tokens).ok_or_else(|| missing(T::display_name()))
 }
 
 #[cfg(test)]
