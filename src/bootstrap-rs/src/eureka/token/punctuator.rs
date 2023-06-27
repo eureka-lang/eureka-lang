@@ -1,4 +1,5 @@
 use crate::eureka::token::Token;
+use crate::miscellaneous::DisplayName;
 use crate::text::Position;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -35,6 +36,12 @@ impl Punctuator {
 
     pub fn relative_end(&self) -> Position {
         Position::new(1, self.len() + 1)
+    }
+}
+
+impl DisplayName for Punctuator {
+    fn display_name() -> &'static str {
+        "punctuator"
     }
 }
 

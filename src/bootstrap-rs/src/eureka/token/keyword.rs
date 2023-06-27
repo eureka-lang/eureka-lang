@@ -1,5 +1,6 @@
 use super::name::lex_unquoted_name;
 use crate::eureka::token::Token;
+use crate::miscellaneous::DisplayName;
 use crate::text::Position;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -42,6 +43,12 @@ impl Keyword {
 
     pub fn relative_end(&self) -> Position {
         Position::new(1, self.len() + 1)
+    }
+}
+
+impl DisplayName for Keyword {
+    fn display_name() -> &'static str {
+        "keyword"
     }
 }
 

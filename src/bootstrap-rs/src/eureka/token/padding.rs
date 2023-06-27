@@ -1,5 +1,6 @@
 use super::lex;
 use crate::eureka::token::Token;
+use crate::miscellaneous::DisplayName;
 use crate::text::Position;
 pub use restricted::Padding;
 
@@ -96,6 +97,12 @@ impl Padding {
         }
 
         Position::new(line_count, previous_line.len() + 1)
+    }
+}
+
+impl DisplayName for Padding {
+    fn display_name() -> &'static str {
+        "padding"
     }
 }
 
