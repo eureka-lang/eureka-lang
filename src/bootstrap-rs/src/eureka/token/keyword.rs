@@ -33,12 +33,16 @@ impl Keyword {
         None
     }
 
-    pub fn len(&self) -> usize {
+    pub fn as_str(&self) -> &'static str {
         let index = Keyword::REVERSE_MAP
             .binary_search_by_key(self, |&(key, _)| key)
             .unwrap();
 
-        Keyword::REVERSE_MAP[index].1.len()
+        Keyword::REVERSE_MAP[index].1
+    }
+
+    pub fn len(&self) -> usize {
+        self.as_str().len()
     }
 
     pub fn relative_end(&self) -> Position {
