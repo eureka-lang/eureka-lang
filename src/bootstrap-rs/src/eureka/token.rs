@@ -1,12 +1,10 @@
 use crate::text::Position;
-pub use identifier::Identifier;
 pub use keyword::Keyword;
 pub use padding::Padding;
 pub use punctuator::Punctuator;
 pub use tokens::Tokens;
 pub use unquoted_identifier::UnquotedIdentifier;
 
-mod identifier;
 mod keyword;
 mod lex;
 mod name;
@@ -17,7 +15,7 @@ mod unquoted_identifier;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Token {
-    Identifier(Identifier),
+    Identifier(UnquotedIdentifier),
     Keyword(Keyword),
     Padding(Padding),
     Punctuator(Punctuator),
@@ -25,7 +23,7 @@ pub enum Token {
 
 impl Token {
     pub fn lex(src: &str) -> Option<(Token, &str)> {
-        if let Some((identifier, remaining_src)) = Identifier::lex(src) {
+        if let Some((identifier, remaining_src)) = UnquotedIdentifier::lex(src) {
             return Some((identifier.into(), remaining_src));
         }
 
@@ -71,15 +69,9 @@ impl Token {
     }
 }
 
-impl From<Identifier> for Token {
-    fn from(value: Identifier) -> Token {
-        Token::Identifier(value)
-    }
-}
-
 impl From<UnquotedIdentifier> for Token {
     fn from(value: UnquotedIdentifier) -> Token {
-        Token::Identifier(value.into())
+        Token::Identifier(value)
     }
 }
 
