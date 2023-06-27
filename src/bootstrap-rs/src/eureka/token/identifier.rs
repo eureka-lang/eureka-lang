@@ -1,4 +1,5 @@
 use super::lex;
+use crate::eureka::token::Token;
 use crate::text::Position;
 pub use restricted::Identifier;
 
@@ -41,6 +42,17 @@ impl Identifier {
 
     pub fn relative_end(&self) -> Position {
         Position::new(1, self.as_str().len() + 1)
+    }
+}
+
+impl TryFrom<Token> for Identifier {
+    type Error = ();
+
+    fn try_from(value: Token) -> Result<Self, Self::Error> {
+        match value {
+            Token::Identifier(identifier) => Ok(identifier),
+            _ => Err(()),
+        }
     }
 }
 

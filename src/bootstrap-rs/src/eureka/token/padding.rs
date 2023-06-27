@@ -1,4 +1,5 @@
 use super::lex;
+use crate::eureka::token::Token;
 use crate::text::Position;
 pub use restricted::Padding;
 
@@ -95,6 +96,17 @@ impl Padding {
         }
 
         Position::new(line_count, previous_line.len() + 1)
+    }
+}
+
+impl TryFrom<Token> for Padding {
+    type Error = ();
+
+    fn try_from(value: Token) -> Result<Self, Self::Error> {
+        match value {
+            Token::Padding(padding) => Ok(padding),
+            _ => Err(()),
+        }
     }
 }
 

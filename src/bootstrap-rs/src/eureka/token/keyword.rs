@@ -1,4 +1,5 @@
 use super::name::lex_unquoted_name;
+use crate::eureka::token::Token;
 use crate::text::Position;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -41,6 +42,17 @@ impl Keyword {
 
     pub fn relative_end(&self) -> Position {
         Position::new(1, self.len() + 1)
+    }
+}
+
+impl TryFrom<Token> for Keyword {
+    type Error = ();
+
+    fn try_from(value: Token) -> Result<Self, Self::Error> {
+        match value {
+            Token::Keyword(keyword) => Ok(keyword),
+            _ => Err(()),
+        }
     }
 }
 
