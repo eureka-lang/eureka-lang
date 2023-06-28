@@ -2,6 +2,7 @@ use super::name::lex_unquoted_name;
 use crate::eureka::token::Token;
 use crate::miscellaneous::DisplayName;
 use crate::text::Position;
+use std::fmt;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Keyword {
@@ -47,6 +48,12 @@ impl Keyword {
 
     pub fn relative_end(&self) -> Position {
         Position::new(1, self.len() + 1)
+    }
+}
+
+impl fmt::Display for Keyword {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
     }
 }
 

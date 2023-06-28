@@ -3,6 +3,7 @@ use crate::eureka::token::Token;
 use crate::miscellaneous::DisplayName;
 use crate::text::Position;
 pub use restricted::Identifier;
+use std::fmt;
 
 mod restricted {
     use super::super::keyword::Keyword;
@@ -43,6 +44,12 @@ impl Identifier {
 
     pub fn relative_end(&self) -> Position {
         Position::new(1, self.as_str().len() + 1)
+    }
+}
+
+impl fmt::Display for Identifier {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
     }
 }
 
