@@ -25,13 +25,17 @@ impl Punctuator {
         Some((punctuator, chars.as_str()))
     }
 
-    pub fn len(&self) -> usize {
+    pub fn as_str(&self) -> &'static str {
         match self {
-            Self::LeftParenthesis => 1,
-            Self::RightParenthesis => 1,
-            Self::LeftBrace => 1,
-            Self::RightBrace => 1,
+            Self::LeftParenthesis => "(",
+            Self::RightParenthesis => ")",
+            Self::LeftBrace => "{",
+            Self::RightBrace => "}",
         }
+    }
+
+    pub fn len(&self) -> usize {
+        self.as_str().len()
     }
 
     pub fn relative_end(&self) -> Position {
