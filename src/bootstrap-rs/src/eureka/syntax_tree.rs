@@ -3,12 +3,20 @@ use crate::eureka::token::{Identifier, Padding};
 mod parse;
 
 struct SyntaxTree {
-    definitions: Vec<FunctionDefinition>,
+    definitions: Vec<PaddedDefinition>,
     post_definitions_padding: Option<Padding>,
 }
 
+struct PaddedDefinition {
+    pre_definition_padding: Option<Padding>,
+    definition: Definition,
+}
+
+enum Definition {
+    Function(FunctionDefinition),
+}
+
 struct FunctionDefinition {
-    pre_keyword_padding: Option<Padding>,
     // Keyword::Fn
     pre_identifier_padding: Padding,
     identifier: Identifier,
