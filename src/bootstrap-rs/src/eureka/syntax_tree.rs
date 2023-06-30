@@ -16,8 +16,17 @@ struct PaddedDefinition {
     post_definition_padding: Option<Padding>,
 }
 
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 enum Definition {
     Function(FunctionDefinition),
+}
+
+fn parse_optional_definition(tokens: &mut Tokens) -> Result<Option<Definition>, String> {
+    if let Some(definition) = parse_optional_function_definition(tokens)? {
+        Ok(Some(Definition::Function(definition)))
+    } else {
+        Ok(None)
+    }
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
