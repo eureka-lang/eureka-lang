@@ -11,9 +11,25 @@ struct ModuleBody {
     definitions: Vec<PaddedDefinition>,
 }
 
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 struct PaddedDefinition {
     definition: Definition,
     post_definition_padding: Option<Padding>,
+}
+
+fn parse_optional_padded_definition(
+    tokens: &mut Tokens,
+) -> Result<Option<PaddedDefinition>, String> {
+    if let Some(definition) = parse_optional_definition(tokens)? {
+        let post_definition_padding = parse::optional(tokens);
+
+        Ok(Some(PaddedDefinition {
+            definition,
+            post_definition_padding,
+        }))
+    } else {
+        Ok(None)
+    }
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
