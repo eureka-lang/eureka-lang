@@ -3,13 +3,13 @@ use crate::eureka::token::{Identifier, Keyword, Padding, Punctuator, Token, Toke
 mod parse;
 
 struct SyntaxTree {
+    pre_definitions_padding: Option<Padding>,
     definitions: Vec<PaddedDefinition>,
-    post_definitions_padding: Option<Padding>,
 }
 
 struct PaddedDefinition {
-    pre_definition_padding: Option<Padding>,
     definition: Definition,
+    post_definition_padding: Option<Padding>,
 }
 
 enum Definition {
