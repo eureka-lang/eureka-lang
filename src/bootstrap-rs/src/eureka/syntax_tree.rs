@@ -17,10 +17,8 @@ struct PaddedDefinition {
     post_definition_padding: Option<Padding>,
 }
 
-fn parse_optional_padded_definition(
-    tokens: &mut Tokens,
-) -> Result<Option<PaddedDefinition>, String> {
-    if let Some(definition) = parse_optional_definition(tokens)? {
+fn parse_padded_definition(tokens: &mut Tokens) -> Result<Option<PaddedDefinition>, String> {
+    if let Some(definition) = parse_definition(tokens)? {
         let post_definition_padding = parse::optional(tokens);
 
         Ok(Some(PaddedDefinition {
@@ -37,8 +35,8 @@ enum Definition {
     Function(FunctionDefinition),
 }
 
-fn parse_optional_definition(tokens: &mut Tokens) -> Result<Option<Definition>, String> {
-    if let Some(definition) = parse_optional_function_definition(tokens)? {
+fn parse_definition(tokens: &mut Tokens) -> Result<Option<Definition>, String> {
+    if let Some(definition) = parse_function_definition(tokens)? {
         Ok(Some(Definition::Function(definition)))
     } else {
         Ok(None)
@@ -58,9 +56,7 @@ struct FunctionDefinition {
     // Punctuator::RightBrace
 }
 
-fn parse_optional_function_definition(
-    tokens: &mut Tokens,
-) -> Result<Option<FunctionDefinition>, String> {
+fn parse_function_definition(tokens: &mut Tokens) -> Result<Option<FunctionDefinition>, String> {
     if tokens.peek() != Some(&Token::Keyword(Keyword::Fn)) {
         return Ok(None);
     }
@@ -105,11 +101,9 @@ mod tests {
     use crate::text::Position;
 
     #[test]
-    fn test_parse_optional_function_definition_success() {
+    fn test_parse_function_definition_success() {
         let mut tokens = Tokens::lex_all("fn main() {}").unwrap();
-        let actual_function_definition = parse_optional_function_definition(&mut tokens)
-            .unwrap()
-            .unwrap();
+        let actual_function_definition = parse_function_definition(&mut tokens).unwrap().unwrap();
         let expected_function_definition = FunctionDefinition {
             pre_identifier_padding: Padding::new(" "),
             identifier: Identifier::new("main"),
@@ -120,34 +114,34 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_optional_function_definition_err() {
+    fn test_parse_function_definition_err() {
         let mut tokens = Tokens::lex_all("fn main( {}").unwrap();
         assert_eq!(tokens.position(), Position::new(1, 1));
-        assert!(parse_optional_function_definition(&mut tokens).is_err());
+        assert!(parse_function_definition(&mut tokens).is_err());
         assert_eq!(tokens.position(), Position::new(1, 9));
     }
 
     #[test]
-    fn test_parse_optional_function_definition_none() {
+    fn test_parse_function_definition_none() {
         let mut tokens = Tokens::lex_all("return x").unwrap();
-        assert_eq!(Ok(None), parse_optional_function_definition(&mut tokens));
+        assert_eq!(Ok(None), parse_function_definition(&mut tokens));
     }
 
     #[test]
-    fn test_zero_or_more_parse_optional_function_definition_zero() {
+    fn test_zero_or_more_parse_function_definition_zero() {
         let mut tokens = Tokens::lex_all("").unwrap();
 
-        let actual = zero_or_more(parse_optional_function_definition)(&mut tokens);
+        let actual = zero_or_more(parse_function_definition)(&mut tokens);
         let expected: Vec<FunctionDefinition> = Vec::new();
 
         assert_eq!(expected, actual.unwrap());
     }
 
     #[test]
-    fn test_zero_or_more_parse_optional_function_definition_one() {
+    fn test_zero_or_more_parse_function_definition_one() {
         let mut tokens = Tokens::lex_all("fn main() {}").unwrap();
 
-        let actual = zero_or_more(parse_optional_function_definition)(&mut tokens);
+        let actual = zero_or_more(parse_function_definition)(&mut tokens);
         let expected: Vec<FunctionDefinition> = vec![FunctionDefinition {
             pre_identifier_padding: Padding::new(" "),
             identifier: Identifier::new("main"),
@@ -159,10 +153,10 @@ mod tests {
     }
 
     #[test]
-    fn test_zero_or_more_parse_optional_function_definition_two() {
+    fn test_zero_or_more_parse_function_definition_two() {
         let mut tokens = Tokens::lex_all("fn a(){}fn b(){}").unwrap();
 
-        let actual = zero_or_more(parse_optional_function_definition)(&mut tokens);
+        let actual = zero_or_more(parse_function_definition)(&mut tokens);
         let expected: Vec<FunctionDefinition> = vec![
             FunctionDefinition {
                 pre_identifier_padding: Padding::new(" "),
@@ -182,10 +176,10 @@ mod tests {
     }
 
     #[test]
-    fn test_zero_or_more_parse_optional_function_definition_err() {
+    fn test_zero_or_more_parse_function_definition_err() {
         let mut tokens = Tokens::lex_all("fn main( {}").unwrap();
         assert_eq!(tokens.position(), Position::new(1, 1));
-        assert!(zero_or_more(parse_optional_function_definition)(&mut tokens).is_err());
+        assert!(zero_or_more(parse_function_definition)(&mut tokens).is_err());
         assert_eq!(tokens.position(), Position::new(1, 9));
     }
 }
