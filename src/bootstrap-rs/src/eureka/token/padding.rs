@@ -3,6 +3,7 @@ use crate::eureka::token::Token;
 use crate::miscellaneous::DisplayName;
 use crate::text::Position;
 pub use restricted::Padding;
+use std::fmt;
 
 mod restricted {
     #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -97,6 +98,12 @@ impl Padding {
         }
 
         Position::new(line_count, previous_line.len() + 1)
+    }
+}
+
+impl fmt::Display for Padding {
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        todo!();
     }
 }
 
