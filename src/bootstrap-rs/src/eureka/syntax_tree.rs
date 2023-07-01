@@ -84,6 +84,21 @@ fn parse_optional_function_definition(
     }))
 }
 
+fn zero_or_more<T, F>(f: F) -> impl Fn(&mut Tokens) -> Result<Vec<T>, String>
+where
+    F: Fn(&mut Tokens) -> Result<Option<T>, String>,
+{
+    move |tokens: &mut Tokens| {
+        let mut result = Vec::new();
+
+        while let Some(t) = f(tokens)? {
+            result.push(t);
+        }
+
+        Ok(result)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -116,5 +131,61 @@ mod tests {
     fn test_parse_optional_function_definition_none() {
         let mut tokens = Tokens::lex_all("return x").unwrap();
         assert_eq!(Ok(None), parse_optional_function_definition(&mut tokens));
+    }
+
+    #[test]
+    fn test_zero_or_more_parse_optional_function_definition_zero() {
+        let mut tokens = Tokens::lex_all("").unwrap();
+
+        let actual = zero_or_more(parse_optional_function_definition)(&mut tokens);
+        let expected: Vec<FunctionDefinition> = Vec::new();
+
+        assert_eq!(expected, actual.unwrap());
+    }
+
+    #[test]
+    fn test_zero_or_more_parse_optional_function_definition_one() {
+        let mut tokens = Tokens::lex_all("fn main() {}").unwrap();
+
+        let actual = zero_or_more(parse_optional_function_definition)(&mut tokens);
+        let expected: Vec<FunctionDefinition> = vec![FunctionDefinition {
+            pre_identifier_padding: Padding::new(" "),
+            identifier: Identifier::new("main"),
+            pre_parenthesis_padding: None,
+            pre_brace_padding: Some(Padding::new(" ")),
+        }];
+
+        assert_eq!(expected, actual.unwrap());
+    }
+
+    #[test]
+    fn test_zero_or_more_parse_optional_function_definition_two() {
+        let mut tokens = Tokens::lex_all("fn a(){}fn b(){}").unwrap();
+
+        let actual = zero_or_more(parse_optional_function_definition)(&mut tokens);
+        let expected: Vec<FunctionDefinition> = vec![
+            FunctionDefinition {
+                pre_identifier_padding: Padding::new(" "),
+                identifier: Identifier::new("a"),
+                pre_parenthesis_padding: None,
+                pre_brace_padding: None,
+            },
+            FunctionDefinition {
+                pre_identifier_padding: Padding::new(" "),
+                identifier: Identifier::new("b"),
+                pre_parenthesis_padding: None,
+                pre_brace_padding: None,
+            },
+        ];
+
+        assert_eq!(expected, actual.unwrap());
+    }
+
+    #[test]
+    fn test_zero_or_more_parse_optional_function_definition_err() {
+        let mut tokens = Tokens::lex_all("fn main( {}").unwrap();
+        assert_eq!(tokens.position(), Position::new(1, 1));
+        assert!(zero_or_more(parse_optional_function_definition)(&mut tokens).is_err());
+        assert_eq!(tokens.position(), Position::new(1, 9));
     }
 }
