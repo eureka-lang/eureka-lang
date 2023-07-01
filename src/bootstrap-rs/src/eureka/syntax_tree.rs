@@ -6,9 +6,20 @@ struct SyntaxTree {
     module_body: ModuleBody,
 }
 
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 struct ModuleBody {
     pre_definitions_padding: Option<Padding>,
     definitions: Vec<PaddedDefinition>,
+}
+
+fn parse_module_body(tokens: &mut Tokens) -> Result<ModuleBody, String> {
+    let pre_definitions_padding = parse::optional(tokens);
+    let definitions = zero_or_more(parse_padded_definition)(tokens)?;
+
+    Ok(ModuleBody {
+        pre_definitions_padding,
+        definitions,
+    })
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
