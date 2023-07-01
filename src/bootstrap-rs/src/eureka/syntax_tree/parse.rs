@@ -82,13 +82,13 @@ mod tests {
         assert_eq!(tokens.peek(), Some(&Keyword::Fn.into()));
 
         assert_eq!(
-            Err("missing keyword: return".to_string()),
+            Err("missing keyword: \"return\"".to_string()),
             expected(&mut tokens, Keyword::Return),
         );
         assert_eq!(tokens.peek(), Some(&Keyword::Fn.into()));
 
         assert_eq!(
-            Err("missing identifier: value".to_string()),
+            Err("missing identifier: \"value\"".to_string()),
             expected(&mut tokens, Identifier::new("value")),
         );
         assert_eq!(tokens.peek(), Some(&Keyword::Fn.into()));
@@ -103,7 +103,7 @@ mod tests {
         assert_eq!(tokens.peek(), None);
 
         assert_eq!(
-            Err("missing punctuator: )".to_string()),
+            Err("missing punctuator: \")\"".to_string()),
             expected(&mut tokens, Punctuator::RightParenthesis),
         );
         assert_eq!(tokens.peek(), None);

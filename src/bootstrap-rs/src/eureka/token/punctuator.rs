@@ -46,7 +46,7 @@ impl Punctuator {
 
 impl fmt::Display for Punctuator {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str())
+        write!(f, "\"{}\"", self.as_str())
     }
 }
 

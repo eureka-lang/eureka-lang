@@ -49,7 +49,7 @@ impl Identifier {
 
 impl fmt::Display for Identifier {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str())
+        write!(f, "\"{}\"", self.as_str())
     }
 }
 
