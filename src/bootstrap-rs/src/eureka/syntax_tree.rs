@@ -1,4 +1,4 @@
-use crate::eureka::token::{Identifier, Keyword, Padding, Punctuator, Token, Tokens};
+use crate::eureka::token::{Identifier, Keyword, Lexer, Padding, Punctuator, Token};
 
 mod parse;
 
@@ -8,11 +8,11 @@ struct Module {
     definitions: Vec<PaddedDefinition>,
 }
 
-fn parse_module(tokens: &mut Tokens) -> Result<Module, String> {
-    let pre_definitions_padding = parse::optional(tokens);
-    let definitions = zero_or_more(parse_padded_definition)(tokens)?;
+fn parse_module(lexer: &mut Lexer) -> Result<Module, String> {
+    let pre_definitions_padding = parse::optional(lexer);
+    let definitions = zero_or_more(parse_padded_definition)(lexer)?;
 
-    if let Some(token) = tokens.peek() {
+    if let Some(token) = lexer.peek() {
         return Err(format!("unexpected token: {}", token));
     }
 
@@ -28,9 +28,9 @@ struct PaddedDefinition {
     post_definition_padding: Option<Padding>,
 }
 
-fn parse_padded_definition(tokens: &mut Tokens) -> Result<Option<PaddedDefinition>, String> {
-    if let Some(definition) = parse_definition(tokens)? {
-        let post_definition_padding = parse::optional(tokens);
+fn parse_padded_definition(lexer: &mut Lexer) -> Result<Option<PaddedDefinition>, String> {
+    if let Some(definition) = parse_definition(lexer)? {
+        let post_definition_padding = parse::optional(lexer);
 
         Ok(Some(PaddedDefinition {
             definition,
@@ -46,8 +46,8 @@ enum Definition {
     Function(FunctionDefinition),
 }
 
-fn parse_definition(tokens: &mut Tokens) -> Result<Option<Definition>, String> {
-    if let Some(definition) = parse_function_definition(tokens)? {
+fn parse_definition(lexer: &mut Lexer) -> Result<Option<Definition>, String> {
+    if let Some(definition) = parse_function_definition(lexer)? {
         Ok(Some(Definition::Function(definition)))
     } else {
         Ok(None)
@@ -67,21 +67,21 @@ struct FunctionDefinition {
     // Punctuator::RightBrace
 }
 
-fn parse_function_definition(tokens: &mut Tokens) -> Result<Option<FunctionDefinition>, String> {
-    if tokens.peek() != Some(&Token::Keyword(Keyword::Fn)) {
+fn parse_function_definition(lexer: &mut Lexer) -> Result<Option<FunctionDefinition>, String> {
+    if lexer.peek() != Some(&Token::Keyword(Keyword::Fn)) {
         return Ok(None);
     }
 
-    tokens.pop();
+    lexer.pop();
 
-    let pre_identifier_padding = parse::required(tokens)?;
-    let identifier = parse::required(tokens)?;
-    let pre_parenthesis_padding = parse::optional(tokens);
-    parse::expected(tokens, Punctuator::LeftParenthesis)?;
-    parse::expected(tokens, Punctuator::RightParenthesis)?;
-    let pre_brace_padding = parse::optional(tokens);
-    parse::expected(tokens, Punctuator::LeftBrace)?;
-    parse::expected(tokens, Punctuator::RightBrace)?;
+    let pre_identifier_padding = parse::required(lexer)?;
+    let identifier = parse::required(lexer)?;
+    let pre_parenthesis_padding = parse::optional(lexer);
+    parse::expected(lexer, Punctuator::LeftParenthesis)?;
+    parse::expected(lexer, Punctuator::RightParenthesis)?;
+    let pre_brace_padding = parse::optional(lexer);
+    parse::expected(lexer, Punctuator::LeftBrace)?;
+    parse::expected(lexer, Punctuator::RightBrace)?;
 
     Ok(Some(FunctionDefinition {
         pre_identifier_padding,
@@ -91,14 +91,14 @@ fn parse_function_definition(tokens: &mut Tokens) -> Result<Option<FunctionDefin
     }))
 }
 
-fn zero_or_more<T, F>(f: F) -> impl Fn(&mut Tokens) -> Result<Vec<T>, String>
+fn zero_or_more<T, F>(f: F) -> impl Fn(&mut Lexer) -> Result<Vec<T>, String>
 where
-    F: Fn(&mut Tokens) -> Result<Option<T>, String>,
+    F: Fn(&mut Lexer) -> Result<Option<T>, String>,
 {
-    move |tokens: &mut Tokens| {
+    move |lexer: &mut Lexer| {
         let mut result = Vec::new();
 
-        while let Some(t) = f(tokens)? {
+        while let Some(t) = f(lexer)? {
             result.push(t);
         }
 
@@ -113,8 +113,8 @@ mod tests {
 
     #[test]
     fn test_parse_function_definition_success() {
-        let mut tokens = Tokens::lex_all("fn main() {}").unwrap();
-        let actual_function_definition = parse_function_definition(&mut tokens).unwrap().unwrap();
+        let mut lexer = Lexer::lex_all("fn main() {}").unwrap();
+        let actual_function_definition = parse_function_definition(&mut lexer).unwrap().unwrap();
         let expected_function_definition = FunctionDefinition {
             pre_identifier_padding: Padding::new(" "),
             identifier: Identifier::new("main"),
@@ -126,23 +126,23 @@ mod tests {
 
     #[test]
     fn test_parse_function_definition_err() {
-        let mut tokens = Tokens::lex_all("fn main( {}").unwrap();
-        assert_eq!(tokens.position(), Position::new(1, 1));
-        assert!(parse_function_definition(&mut tokens).is_err());
-        assert_eq!(tokens.position(), Position::new(1, 9));
+        let mut lexer = Lexer::lex_all("fn main( {}").unwrap();
+        assert_eq!(lexer.position(), Position::new(1, 1));
+        assert!(parse_function_definition(&mut lexer).is_err());
+        assert_eq!(lexer.position(), Position::new(1, 9));
     }
 
     #[test]
     fn test_parse_function_definition_none() {
-        let mut tokens = Tokens::lex_all("return x").unwrap();
-        assert_eq!(Ok(None), parse_function_definition(&mut tokens));
+        let mut lexer = Lexer::lex_all("return x").unwrap();
+        assert_eq!(Ok(None), parse_function_definition(&mut lexer));
     }
 
     #[test]
     fn test_zero_or_more_parse_function_definition_zero() {
-        let mut tokens = Tokens::lex_all("").unwrap();
+        let mut lexer = Lexer::lex_all("").unwrap();
 
-        let actual = zero_or_more(parse_function_definition)(&mut tokens);
+        let actual = zero_or_more(parse_function_definition)(&mut lexer);
         let expected: Vec<FunctionDefinition> = Vec::new();
 
         assert_eq!(expected, actual.unwrap());
@@ -150,9 +150,9 @@ mod tests {
 
     #[test]
     fn test_zero_or_more_parse_function_definition_one() {
-        let mut tokens = Tokens::lex_all("fn main() {}").unwrap();
+        let mut lexer = Lexer::lex_all("fn main() {}").unwrap();
 
-        let actual = zero_or_more(parse_function_definition)(&mut tokens);
+        let actual = zero_or_more(parse_function_definition)(&mut lexer);
         let expected: Vec<FunctionDefinition> = vec![FunctionDefinition {
             pre_identifier_padding: Padding::new(" "),
             identifier: Identifier::new("main"),
@@ -165,9 +165,9 @@ mod tests {
 
     #[test]
     fn test_zero_or_more_parse_function_definition_two() {
-        let mut tokens = Tokens::lex_all("fn a(){}fn b(){}").unwrap();
+        let mut lexer = Lexer::lex_all("fn a(){}fn b(){}").unwrap();
 
-        let actual = zero_or_more(parse_function_definition)(&mut tokens);
+        let actual = zero_or_more(parse_function_definition)(&mut lexer);
         let expected: Vec<FunctionDefinition> = vec![
             FunctionDefinition {
                 pre_identifier_padding: Padding::new(" "),
@@ -188,17 +188,17 @@ mod tests {
 
     #[test]
     fn test_zero_or_more_parse_function_definition_err() {
-        let mut tokens = Tokens::lex_all("fn main( {}").unwrap();
-        assert_eq!(tokens.position(), Position::new(1, 1));
-        assert!(zero_or_more(parse_function_definition)(&mut tokens).is_err());
-        assert_eq!(tokens.position(), Position::new(1, 9));
+        let mut lexer = Lexer::lex_all("fn main( {}").unwrap();
+        assert_eq!(lexer.position(), Position::new(1, 1));
+        assert!(zero_or_more(parse_function_definition)(&mut lexer).is_err());
+        assert_eq!(lexer.position(), Position::new(1, 9));
     }
 
     #[test]
     fn test_parse_module_empty() {
-        let mut tokens = Tokens::lex_all("").unwrap();
+        let mut lexer = Lexer::lex_all("").unwrap();
 
-        let actual = parse_module(&mut tokens).unwrap();
+        let actual = parse_module(&mut lexer).unwrap();
         let expected = Module {
             pre_definitions_padding: None,
             definitions: Vec::new(),
@@ -209,9 +209,9 @@ mod tests {
 
     #[test]
     fn test_parse_module_err() {
-        let mut tokens = Tokens::lex_all("fn main() {}return").unwrap();
+        let mut lexer = Lexer::lex_all("fn main() {}return").unwrap();
 
-        let actual = parse_module(&mut tokens).unwrap_err();
+        let actual = parse_module(&mut lexer).unwrap_err();
         let expected = "unexpected token: \"return\"";
 
         assert_eq!(expected, actual);
@@ -219,9 +219,9 @@ mod tests {
 
     #[test]
     fn test_parse_module_success() {
-        let mut tokens = Tokens::lex_all("fn main() {}").unwrap();
+        let mut lexer = Lexer::lex_all("fn main() {}").unwrap();
 
-        let actual = parse_module(&mut tokens).unwrap();
+        let actual = parse_module(&mut lexer).unwrap();
         let expected = Module {
             pre_definitions_padding: None,
             definitions: vec![PaddedDefinition {
