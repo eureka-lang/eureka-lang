@@ -2,15 +2,15 @@ use crate::eureka::token::Token;
 use crate::text::Position;
 
 pub struct Lexer {
-    values: Vec<Token>,
+    tokens: Vec<Token>,
     position: Position,
 }
 
 impl Lexer {
-    pub fn new(mut values: Vec<Token>) -> Lexer {
-        values.reverse();
+    pub fn new(mut tokens: Vec<Token>) -> Lexer {
+        tokens.reverse();
         Lexer {
-            values,
+            tokens,
             position: Position::new(1, 1),
         }
     }
@@ -20,15 +20,15 @@ impl Lexer {
     }
 
     pub fn peek(&self) -> Option<&Token> {
-        self.values.last()
+        self.tokens.last()
     }
 
     pub fn pop(&mut self) -> Option<Token> {
-        match self.values.pop() {
+        match self.tokens.pop() {
             None => None,
-            Some(value) => {
-                self.position.relative_move(value.relative_end());
-                Some(value)
+            Some(token) => {
+                self.position.relative_move(token.relative_end());
+                Some(token)
             }
         }
     }
