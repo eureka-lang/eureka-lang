@@ -1,4 +1,5 @@
-use crate::eureka::token::{Identifier, Keyword, Lexer, Padding, Punctuator, Token};
+use crate::eureka::lexer::Lexer;
+use crate::eureka::token::{Identifier, Keyword, Padding, Punctuator, Token};
 
 mod parse;
 

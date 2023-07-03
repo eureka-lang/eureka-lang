@@ -1,4 +1,4 @@
-use super::Token;
+use crate::eureka::token::Token;
 use crate::text::Position;
 
 pub struct Lexer {
@@ -40,8 +40,8 @@ impl Lexer {
 
 #[cfg(test)]
 mod tests {
-    use super::super::{Identifier, Keyword, Padding};
     use super::*;
+    use crate::eureka::token::{Identifier, Keyword, Padding};
 
     #[test]
     fn empty_lexer() {

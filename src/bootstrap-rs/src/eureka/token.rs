@@ -4,7 +4,6 @@ pub use keyword::Keyword;
 pub use padding::Padding;
 pub use punctuator::Punctuator;
 use std::fmt;
-pub use tokens::Lexer;
 
 mod identifier;
 mod keyword;
@@ -12,7 +11,6 @@ mod lex;
 mod name;
 mod padding;
 mod punctuator;
-mod tokens;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Token {

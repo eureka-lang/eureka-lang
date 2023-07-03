@@ -1,4 +1,5 @@
-use crate::eureka::token::{Lexer, Token};
+use crate::eureka::lexer::Lexer;
+use crate::eureka::token::Token;
 use crate::miscellaneous::{missing, DisplayName};
 use std::fmt;
 
