@@ -12,6 +12,10 @@ fn parse_module(tokens: &mut Tokens) -> Result<Module, String> {
     let pre_definitions_padding = parse::optional(tokens);
     let definitions = zero_or_more(parse_padded_definition)(tokens)?;
 
+    if let Some(token) = tokens.peek() {
+        return Err(format!("unexpected token: {}", token));
+    }
+
     Ok(Module {
         pre_definitions_padding,
         definitions,
@@ -188,5 +192,49 @@ mod tests {
         assert_eq!(tokens.position(), Position::new(1, 1));
         assert!(zero_or_more(parse_function_definition)(&mut tokens).is_err());
         assert_eq!(tokens.position(), Position::new(1, 9));
+    }
+
+    #[test]
+    fn test_parse_module_empty() {
+        let mut tokens = Tokens::lex_all("").unwrap();
+
+        let actual = parse_module(&mut tokens).unwrap();
+        let expected = Module {
+            pre_definitions_padding: None,
+            definitions: Vec::new(),
+        };
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_parse_module_err() {
+        let mut tokens = Tokens::lex_all("fn main() {}return").unwrap();
+
+        let actual = parse_module(&mut tokens).unwrap_err();
+        let expected = "unexpected token: \"return\"";
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_parse_module_success() {
+        let mut tokens = Tokens::lex_all("fn main() {}").unwrap();
+
+        let actual = parse_module(&mut tokens).unwrap();
+        let expected = Module {
+            pre_definitions_padding: None,
+            definitions: vec![PaddedDefinition {
+                definition: Definition::Function(FunctionDefinition {
+                    pre_identifier_padding: Padding::new(" "),
+                    identifier: Identifier::new("main"),
+                    pre_parenthesis_padding: None,
+                    pre_brace_padding: Some(Padding::new(" ")),
+                }),
+                post_definition_padding: None,
+            }],
+        };
+
+        assert_eq!(expected, actual);
     }
 }
