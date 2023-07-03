@@ -2,10 +2,6 @@ use crate::eureka::token::{Identifier, Keyword, Padding, Punctuator, Token, Toke
 
 mod parse;
 
-struct SyntaxTree {
-    module_body: ModuleBody,
-}
-
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 struct ModuleBody {
     pre_definitions_padding: Option<Padding>,
