@@ -3,8 +3,8 @@ pub struct Code {
 }
 
 impl Code {
-    pub fn new(code: &str) -> Self {
-        let mut chars: Vec<char> = code.chars().collect();
+    pub fn new(src: &str) -> Self {
+        let mut chars: Vec<char> = src.chars().collect();
         chars.reverse();
         Self { chars }
     }
