@@ -4,6 +4,7 @@ pub struct Code {
 
 impl Code {
     pub fn new(src: &str) -> Self {
+        let src = normalize(src);
         let mut chars: Vec<char> = src.chars().collect();
         chars.reverse();
         Self { chars }
@@ -16,6 +17,20 @@ impl Code {
     pub fn pop(&mut self) -> Option<char> {
         self.chars.pop()
     }
+}
+
+fn normalize(src: &str) -> String {
+    if src.is_empty() {
+        return src.to_string();
+    }
+
+    let mut src = src.replace("\r\n", "\n");
+
+    if src.chars().last() != Some('\n') {
+        src.push('\n');
+    }
+
+    src
 }
 
 #[cfg(test)]
@@ -36,18 +51,44 @@ mod tests {
     }
 
     #[test]
-    fn non_empty() {
-        let mut code = Code::new("a+b");
+    fn one_line() {
+        for src in ["a+b", "a+b\n", "a+b\r\n"] {
+            let mut code = Code::new(src);
 
-        assert_eq!(code.peek(), Some('a'));
-        assert_eq!(code.pop(), Some('a'));
+            assert_eq!(code.peek(), Some('a'));
+            assert_eq!(code.pop(), Some('a'));
 
-        assert_eq!(code.peek(), Some('+'));
-        assert_eq!(code.pop(), Some('+'));
+            assert_eq!(code.peek(), Some('+'));
+            assert_eq!(code.pop(), Some('+'));
 
-        assert_eq!(code.peek(), Some('b'));
-        assert_eq!(code.pop(), Some('b'));
+            assert_eq!(code.peek(), Some('b'));
+            assert_eq!(code.pop(), Some('b'));
 
-        assert!(code.peek().is_none());
+            assert_eq!(code.peek(), Some('\n'));
+            assert_eq!(code.pop(), Some('\n'));
+
+            assert!(code.peek().is_none());
+        }
+    }
+
+    #[test]
+    fn two_lines() {
+        for src in [
+            "A\nB",
+            "A\nB\n",
+            "A\nB\r\n",
+            "A\r\nB",
+            "A\r\nB\n",
+            "A\r\nB\r\n",
+        ] {
+            let mut code = Code::new(src);
+
+            assert_eq!(code.pop(), Some('A'));
+            assert_eq!(code.pop(), Some('\n'));
+            assert_eq!(code.pop(), Some('B'));
+            assert_eq!(code.pop(), Some('\n'));
+
+            assert!(code.peek().is_none());
+        }
     }
 }
