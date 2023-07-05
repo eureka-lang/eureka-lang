@@ -1,3 +1,4 @@
+use crate::eureka::code::Code;
 use crate::eureka::token::Token;
 use crate::miscellaneous::DisplayName;
 use crate::text::Position;
@@ -13,17 +14,25 @@ pub enum Punctuator {
 
 impl Punctuator {
     pub fn lex(src: &str) -> Option<(Punctuator, &str)> {
-        let mut chars = src.chars();
+        let mut code = Code::new(src);
+        match Self::lex2(&mut code) {
+            None => None,
+            Some(punctuator) => Some((punctuator, &src[punctuator.len()..])),
+        }
+    }
 
-        let punctuator = match chars.next() {
-            Some('(') => Punctuator::LeftParenthesis,
-            Some(')') => Punctuator::RightParenthesis,
-            Some('{') => Punctuator::LeftBrace,
-            Some('}') => Punctuator::RightBrace,
+    pub fn lex2(code: &mut Code) -> Option<Self> {
+        let punctuator = match code.peek() {
+            Some('(') => Self::LeftParenthesis,
+            Some(')') => Self::RightParenthesis,
+            Some('{') => Self::LeftBrace,
+            Some('}') => Self::RightBrace,
             _ => return None,
         };
 
-        Some((punctuator, chars.as_str()))
+        code.pop();
+
+        Some(punctuator)
     }
 
     pub fn as_str(&self) -> &'static str {
