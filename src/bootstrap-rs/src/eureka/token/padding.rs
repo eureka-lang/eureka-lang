@@ -1,4 +1,4 @@
-use super::lex;
+use crate::eureka::code::Code;
 use crate::eureka::token::Token;
 use crate::miscellaneous::DisplayName;
 use crate::text::Position;
@@ -6,6 +6,8 @@ pub use restricted::Padding;
 use std::fmt;
 
 mod restricted {
+    use crate::eureka::code::Code;
+
     #[derive(Clone, Debug, Eq, Hash, PartialEq)]
     pub struct Padding {
         value: String,
@@ -17,75 +19,82 @@ mod restricted {
         }
 
         pub fn lex(src: &str) -> Option<(Padding, &str)> {
-            let mut remaining_src;
+            let mut code = Code::new(src);
 
-            if let Some(new_remaining_src) = super::skip_whitespace(src) {
-                remaining_src = new_remaining_src;
-            } else if let Some(new_remaining_src) = super::skip_comment(src) {
-                remaining_src = new_remaining_src;
-            } else {
-                return None;
-            }
-
-            loop {
-                if let Some(new_remaining_src) = super::skip_whitespace(remaining_src) {
-                    remaining_src = new_remaining_src;
-                } else if let Some(new_remaining_src) = super::skip_comment(remaining_src) {
-                    remaining_src = new_remaining_src;
-                } else {
-                    break;
+            if let Ok(Some(padding)) = Self::lex2(&mut code) {
+                let mut r_count = 0;
+                loop {
+                    let new_r_count = src
+                        .chars()
+                        .take(r_count + padding.as_str().len())
+                        .filter(|&c| c == '\r')
+                        .count();
+                    if new_r_count == r_count {
+                        break;
+                    }
+                    r_count = new_r_count;
                 }
-            }
-
-            let len = src.len() - remaining_src.len();
-            assert!(len > 0);
-
-            let padding = Padding {
-                value: String::from(&src[..len]),
-            };
-
-            Some((padding, remaining_src))
-        }
-    }
-}
-
-fn skip_comment(src: &str) -> Option<&str> {
-    let mut chars = src.chars();
-
-    if let Some('#') = chars.next() {
-        while let Some(c) = chars.next() {
-            if c.is_ascii_graphic() || c == ' ' || c == '\t' {
-                continue;
-            } else if c == '\n' {
-                return Some(chars.as_str());
-            } else if c == '\r' && chars.next() == Some('\n') {
-                return Some(chars.as_str());
+                let len = (r_count + padding.as_str().len()).min(src.len());
+                Some((padding, &src[len..]))
             } else {
-                break;
+                None
+            }
+        }
+
+        pub fn lex2(code: &mut Code) -> Result<Option<Self>, String> {
+            let mut value = String::new();
+
+            while super::lex_whitespace(code, &mut value) || super::lex_comment(code, &mut value)? {
+            }
+
+            if value.is_empty() {
+                Ok(None)
+            } else {
+                Ok(Some(Self { value }))
             }
         }
     }
-
-    None
 }
 
-fn skip_whitespace(src: &str) -> Option<&str> {
-    let mut chars = src.chars();
+fn lex_comment(code: &mut Code, buffer: &mut String) -> Result<bool, String> {
+    if let Some('#') = code.peek() {
+        buffer.push(code.pop().unwrap());
 
-    if let Some(c) = chars.next() {
-        if c == ' ' || c == '\t' || c == '\n' {
-            return Some(chars.as_str());
-        } else if c == '\r' && chars.next() == Some('\n') {
-            return Some(chars.as_str());
+        while let Some(' '..='~' | '\t') = code.peek() {
+            buffer.push(code.pop().unwrap());
+        }
+
+        if let Some('\n') = code.peek() {
+            buffer.push(code.pop().unwrap());
+            return Ok(true);
+        } else {
+            return Err(format!("unexpected: {:?}", code.peek()));
         }
     }
 
-    None
+    Ok(false)
+}
+
+fn lex_whitespace(code: &mut Code, buffer: &mut String) -> bool {
+    let buffer_len = buffer.len();
+
+    while let Some(' ' | '\t' | '\n') = code.peek() {
+        buffer.push(code.pop().unwrap());
+    }
+
+    buffer.len() > buffer_len
 }
 
 impl Padding {
     pub fn new(value: &str) -> Padding {
-        lex::entirely(Padding::lex)(value)
+        let mut code = Code::new(&format!("{value};\n"));
+        if let Ok(Some(padding)) = Self::lex2(&mut code) {
+            if padding.as_str() == value {
+                return padding;
+            }
+        }
+
+        panic!("invalid value");
     }
 
     pub fn relative_end(&self) -> Position {
@@ -149,25 +158,26 @@ mod tests {
     #[test]
     fn lex_succeeds() {
         for (src, expected_padding, expected_remaining_src) in [
-            (" ", " ", ""),
+            (" ", " \n", ""),
             (" else", " ", "else"),
-            ("\t", "\t", ""),
+            ("\t", "\t\n", ""),
             ("\t{", "\t", "{"),
             ("\n", "\n", ""),
             ("\nSome ", "\n", "Some "),
-            ("\r\n", "\r\n", ""),
-            ("\r\nNone\t", "\r\n", "None\t"),
+            ("\r\n", "\n", ""),
+            ("\r\nNone\t", "\n", "None\t"),
+            ("#ok", "#ok\n", ""),
             ("#ok\n", "#ok\n", ""),
             ("#ok\n2 ", "#ok\n", "2 "),
-            ("#ok\r\n", "#ok\r\n", ""),
-            ("#ok\r\n2 ", "#ok\r\n", "2 "),
-            (" \t\n\r\n\n\t ...", " \t\n\r\n\n\t ", "..."),
+            ("#ok\r\n", "#ok\n", ""),
+            ("#ok\r\n2 ", "#ok\n", "2 "),
+            (" \t\n\r\n\n\t ...", " \t\n\n\n\t ", "..."),
             (" #1\n?", " #1\n", "?"),
             ("#1\n ?", "#1\n ", "?"),
-            (" \t\n\r\n#x\n", " \t\n\r\n#x\n", ""),
+            (" \t\n\r\n#x\n", " \t\n\n#x\n", ""),
             (
                 "\n #1\n\t#2\r\n ##aA!~\n\n  \t\t\r\n\r\n#4\r\nSome \t\n\r\n#x\n",
-                "\n #1\n\t#2\r\n ##aA!~\n\n  \t\t\r\n\r\n#4\r\n",
+                "\n #1\n\t#2\n ##aA!~\n\n  \t\t\n\n#4\n",
                 "Some \t\n\r\n#x\n",
             ),
         ] {
@@ -186,55 +196,57 @@ mod tests {
     }
 
     #[test]
-    fn test_skip_comment() {
-        for (src, expected_result) in [
-            ("", None),
-            ("x", None),
-            ("#", None),
-            ("#\x1B", None),
-            ("#\x1B\n", None),
-            ("#x\x1B", None),
-            ("#x\x1B\r\n", None),
-            ("#\r", None),
-            ("#\rX\n", None),
-            ("#\r \n", None),
-            ("#\r\t\n", None),
-            ("#\r\r\n", None),
-            ("#\0\n", None),
-            ("#\0\r\n", None),
-            ("#\n", Some("")),
-            ("#\nX", Some("X")),
-            ("#\r\n", Some("")),
-            ("#\r\nX", Some("X")),
-            ("# This is a comment!\nY", Some("Y")),
-            ("#a-zA-Z0-9?()\t !~ #ok\r\n    {", Some("    {")),
-            ("## ## ##\n#\n", Some("#\n")),
+    fn test_lex_comment() {
+        for (src, expected_buffer, expected_result) in [
+            ("", "", Ok(false)),
+            ("x\n", "", Ok(false)),
+            ("#\n", "#\n", Ok(true)),
+            ("#\nX\n", "#\n", Ok(true)),
+            (
+                "# This is a comment!\nY\n",
+                "# This is a comment!\n",
+                Ok(true),
+            ),
+            (
+                "#a-zA-Z0-9?()\t !~ #ok\n    {\n",
+                "#a-zA-Z0-9?()\t !~ #ok\n",
+                Ok(true),
+            ),
+            ("## ## ##\n#\n", "## ## ##\n", Ok(true)),
         ] {
-            assert_eq!(expected_result, skip_comment(src));
+            let mut code = Code::new(src);
+            let mut actual_buffer = String::new();
+
+            assert_eq!(expected_result, lex_comment(&mut code, &mut actual_buffer));
+            assert_eq!(expected_buffer.to_string(), actual_buffer);
         }
     }
 
     #[test]
-    fn test_skip_whitespace() {
-        for (src, expected_result) in [
-            ("", None),
-            ("x", None),
-            ("\r", None),
-            ("\rX", None),
-            ("\r ", None),
-            ("\r X", None),
-            ("\r\t", None),
-            ("\r\r", None),
-            (" ", Some("")),
-            (" x", Some("x")),
-            ("\t", Some("")),
-            ("\t{ ", Some("{ ")),
-            ("\n", Some("")),
-            ("\nFn ", Some("Fn ")),
-            ("\r\n", Some("")),
-            ("\r\nFn ", Some("Fn ")),
+    fn test_lex_whitespace() {
+        for (src, expected_buffer, expected_result) in [
+            ("", "", false),
+            ("x\n", "", false),
+            ("\rX\n", "", false),
+            ("\r \n", "", false),
+            ("\r X\n", "", false),
+            ("\r\t\n", "", false),
+            ("\r\r\n", "", false),
+            (" \n", " \n", true),
+            (" x\n", " ", true),
+            ("\t\n", "\t\n", true),
+            ("\t{ \n", "\t", true),
+            ("\n", "\n", true),
+            ("\nFn \n", "\n", true),
         ] {
-            assert_eq!(expected_result, skip_whitespace(src));
+            let mut code = Code::new(src);
+            let mut actual_buffer = String::new();
+
+            assert_eq!(
+                expected_result,
+                lex_whitespace(&mut code, &mut actual_buffer),
+            );
+            assert_eq!(expected_buffer.to_string(), actual_buffer);
         }
     }
 
@@ -243,20 +255,15 @@ mod tests {
         assert_eq!(Padding::new(" ").relative_end(), Position::new(1, 2));
         assert_eq!(Padding::new("\t\t").relative_end(), Position::new(1, 3));
         assert_eq!(Padding::new("\n").relative_end(), Position::new(2, 1));
-        assert_eq!(Padding::new("\r\n").relative_end(), Position::new(2, 1));
         assert_eq!(Padding::new("\n\n").relative_end(), Position::new(3, 1));
-        assert_eq!(Padding::new("\r\n\r\n").relative_end(), Position::new(3, 1));
         assert_eq!(Padding::new("\t\t\n ").relative_end(), Position::new(2, 2));
-        assert_eq!(
-            Padding::new(" \r\n\t\t").relative_end(),
-            Position::new(2, 3),
-        );
+        assert_eq!(Padding::new(" \n\t\t").relative_end(), Position::new(2, 3));
         assert_eq!(
             Padding::new(" \n#c\n    ").relative_end(),
             Position::new(3, 5),
         );
         assert_eq!(
-            Padding::new("#c\r\n\t\r\n\t").relative_end(),
+            Padding::new("#c\n\t\n\t").relative_end(),
             Position::new(3, 2),
         );
     }
