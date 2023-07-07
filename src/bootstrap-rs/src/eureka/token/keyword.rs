@@ -34,7 +34,7 @@ impl Keyword {
         None
     }
 
-    pub fn as_str(&self) -> &'static str {
+    pub fn unlex(&self) -> &'static str {
         let index = Keyword::REVERSE_MAP
             .binary_search_by_key(self, |&(key, _)| key)
             .unwrap();
@@ -43,7 +43,7 @@ impl Keyword {
     }
 
     pub fn len(&self) -> usize {
-        self.as_str().len()
+        self.unlex().len()
     }
 
     pub fn relative_end(&self) -> Position {
@@ -53,7 +53,7 @@ impl Keyword {
 
 impl fmt::Display for Keyword {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "\"{}\"", self.as_str())
+        write!(f, "\"{}\"", self.unlex())
     }
 }
 

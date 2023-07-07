@@ -35,7 +35,7 @@ impl Punctuator {
         Some(punctuator)
     }
 
-    pub fn as_str(&self) -> &'static str {
+    pub fn unlex(&self) -> &'static str {
         match self {
             Self::LeftParenthesis => "(",
             Self::RightParenthesis => ")",
@@ -45,7 +45,7 @@ impl Punctuator {
     }
 
     pub fn len(&self) -> usize {
-        self.as_str().len()
+        self.unlex().len()
     }
 
     pub fn relative_end(&self) -> Position {
@@ -55,7 +55,7 @@ impl Punctuator {
 
 impl fmt::Display for Punctuator {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "\"{}\"", self.as_str())
+        write!(f, "\"{}\"", self.unlex())
     }
 }
 

@@ -14,10 +14,6 @@ mod restricted {
     }
 
     impl Padding {
-        pub fn as_str(&self) -> &str {
-            self.value.as_str()
-        }
-
         pub fn lex(src: &str) -> Option<(Padding, &str)> {
             let mut code = Code::new(src);
 
@@ -26,7 +22,7 @@ mod restricted {
                 loop {
                     let new_r_count = src
                         .chars()
-                        .take(r_count + padding.as_str().len())
+                        .take(r_count + padding.unlex().len())
                         .filter(|&c| c == '\r')
                         .count();
                     if new_r_count == r_count {
@@ -34,7 +30,7 @@ mod restricted {
                     }
                     r_count = new_r_count;
                 }
-                let len = (r_count + padding.as_str().len()).min(src.len());
+                let len = (r_count + padding.unlex().len()).min(src.len());
                 Some((padding, &src[len..]))
             } else {
                 None
@@ -52,6 +48,10 @@ mod restricted {
             } else {
                 Ok(Some(Self { value }))
             }
+        }
+
+        pub fn unlex(&self) -> &str {
+            self.value.as_str()
         }
     }
 }
@@ -89,7 +89,7 @@ impl Padding {
     pub fn new(value: &str) -> Padding {
         let mut code = Code::new(&format!("{value};\n"));
         if let Ok(Some(padding)) = Self::lex2(&mut code) {
-            if padding.as_str() == value {
+            if padding.unlex() == value {
                 return padding;
             }
         }
@@ -101,7 +101,7 @@ impl Padding {
         let mut line_count = 0;
         let mut previous_line = "";
 
-        for line in self.as_str().split('\n') {
+        for line in self.unlex().split('\n') {
             line_count += 1;
             previous_line = line;
         }
@@ -140,7 +140,7 @@ mod tests {
     #[test]
     fn new_succeeds() {
         let padding = Padding::new(" ");
-        assert_eq!(" ", padding.as_str());
+        assert_eq!(" ", padding.unlex());
     }
 
     #[test]
@@ -183,7 +183,7 @@ mod tests {
         ] {
             let (actual_padding, actual_remaining_src) = Padding::lex(src).unwrap();
 
-            assert_eq!(expected_padding, actual_padding.as_str());
+            assert_eq!(expected_padding, actual_padding.unlex());
             assert_eq!(expected_remaining_src, actual_remaining_src);
         }
     }

@@ -15,10 +15,6 @@ mod restricted {
     }
 
     impl Identifier {
-        pub fn as_str(&self) -> &str {
-            self.value.as_str()
-        }
-
         pub fn lex(src: &str) -> Option<(Identifier, &str)> {
             if Keyword::lex(src).is_some() {
                 return None;
@@ -34,6 +30,10 @@ mod restricted {
 
             None
         }
+
+        pub fn unlex(&self) -> &str {
+            self.value.as_str()
+        }
     }
 }
 
@@ -43,13 +43,13 @@ impl Identifier {
     }
 
     pub fn relative_end(&self) -> Position {
-        Position::new(1, self.as_str().len() + 1)
+        Position::new(1, self.unlex().len() + 1)
     }
 }
 
 impl fmt::Display for Identifier {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "\"{}\"", self.as_str())
+        write!(f, "\"{}\"", self.unlex())
     }
 }
 
@@ -77,7 +77,7 @@ mod tests {
     #[test]
     fn new_succeeds() {
         let identifier = Identifier::new("i");
-        assert_eq!("i", identifier.as_str());
+        assert_eq!("i", identifier.unlex());
     }
 
     #[test]
@@ -103,7 +103,7 @@ mod tests {
         ] {
             let (actual_identifier, actual_remaining_src) = Identifier::lex(src).unwrap();
 
-            assert_eq!(expected_identifier, actual_identifier.as_str());
+            assert_eq!(expected_identifier, actual_identifier.unlex());
             assert_eq!(expected_remaining_src, actual_remaining_src);
         }
     }

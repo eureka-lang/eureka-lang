@@ -41,6 +41,15 @@ impl Token {
         None
     }
 
+    pub fn unlex(&self) -> &str {
+        match self {
+            Self::Identifier(identifier) => identifier.unlex(),
+            Self::Keyword(keyword) => keyword.unlex(),
+            Self::Padding(padding) => padding.unlex(),
+            Self::Punctuator(punctuator) => punctuator.unlex(),
+        }
+    }
+
     pub fn lex_all(mut src: &str) -> Result<Vec<Token>, Position> {
         let mut result = Vec::new();
         let mut current_position = Position::start();
