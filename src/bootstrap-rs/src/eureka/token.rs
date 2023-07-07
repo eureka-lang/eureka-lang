@@ -43,7 +43,7 @@ impl Token {
 
     pub fn lex_all(mut src: &str) -> Result<Vec<Token>, Position> {
         let mut result = Vec::new();
-        let mut current_position = Position::new(1, 1);
+        let mut current_position = Position::start();
 
         while !src.is_empty() {
             if let Some((token, remaining_src)) = Token::lex(src) {

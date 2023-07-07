@@ -11,7 +11,7 @@ impl Lexer {
         tokens.reverse();
         Lexer {
             tokens,
-            position: Position::new(1, 1),
+            position: Position::start(),
         }
     }
 
@@ -49,7 +49,7 @@ mod tests {
 
         assert_eq!(lexer.peek(), None);
         assert_eq!(lexer.pop(), None);
-        assert_eq!(lexer.position(), Position::new(1, 1));
+        assert_eq!(lexer.position(), Position::start());
     }
 
     #[test]

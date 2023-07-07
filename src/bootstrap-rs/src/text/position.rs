@@ -24,6 +24,10 @@ mod restricted {
 }
 
 impl Position {
+    pub fn start() -> Position {
+        Position::new(1, 1)
+    }
+
     pub fn set_line(&mut self, line: usize) {
         *self = Position::new(line, self.column());
     }
