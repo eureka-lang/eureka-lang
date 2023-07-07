@@ -1,7 +1,6 @@
 use crate::eureka::code::Code;
 use crate::eureka::token::Token;
 use crate::miscellaneous::DisplayName;
-use crate::text::Position;
 pub use restricted::Padding;
 use std::fmt;
 
@@ -95,18 +94,6 @@ impl Padding {
         }
 
         panic!("invalid value");
-    }
-
-    pub fn relative_end(&self) -> Position {
-        let mut line_count = 0;
-        let mut previous_line = "";
-
-        for line in self.unlex().split('\n') {
-            line_count += 1;
-            previous_line = line;
-        }
-
-        Position::new(line_count, previous_line.len() + 1)
     }
 }
 
@@ -248,23 +235,5 @@ mod tests {
             );
             assert_eq!(expected_buffer.to_string(), actual_buffer);
         }
-    }
-
-    #[test]
-    fn padding_relative_end() {
-        assert_eq!(Padding::new(" ").relative_end(), Position::new(1, 2));
-        assert_eq!(Padding::new("\t\t").relative_end(), Position::new(1, 3));
-        assert_eq!(Padding::new("\n").relative_end(), Position::new(2, 1));
-        assert_eq!(Padding::new("\n\n").relative_end(), Position::new(3, 1));
-        assert_eq!(Padding::new("\t\t\n ").relative_end(), Position::new(2, 2));
-        assert_eq!(Padding::new(" \n\t\t").relative_end(), Position::new(2, 3));
-        assert_eq!(
-            Padding::new(" \n#c\n    ").relative_end(),
-            Position::new(3, 5),
-        );
-        assert_eq!(
-            Padding::new("#c\n\t\n\t").relative_end(),
-            Position::new(3, 2),
-        );
     }
 }

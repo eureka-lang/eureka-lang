@@ -1,7 +1,6 @@
 use crate::eureka::code::Code;
 use crate::eureka::token::Token;
 use crate::miscellaneous::DisplayName;
-use crate::text::Position;
 use std::fmt;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -17,7 +16,7 @@ impl Punctuator {
         let mut code = Code::new(src);
         match Self::lex2(&mut code) {
             None => None,
-            Some(punctuator) => Some((punctuator, &src[punctuator.len()..])),
+            Some(punctuator) => Some((punctuator, &src[punctuator.unlex().len()..])),
         }
     }
 
@@ -42,14 +41,6 @@ impl Punctuator {
             Self::LeftBrace => "{",
             Self::RightBrace => "}",
         }
-    }
-
-    pub fn len(&self) -> usize {
-        self.unlex().len()
-    }
-
-    pub fn relative_end(&self) -> Position {
-        Position::new(1, self.len() + 1)
     }
 }
 
@@ -100,17 +91,5 @@ mod tests {
         for src in ["", "x", "1", "if", " ", "#"] {
             assert!(Punctuator::lex(src).is_none());
         }
-    }
-
-    #[test]
-    fn relative_end() {
-        assert_eq!(
-            Punctuator::LeftParenthesis.relative_end(),
-            Position::new(1, 2),
-        );
-        assert_eq!(
-            Punctuator::RightParenthesis.relative_end(),
-            Position::new(1, 2),
-        );
     }
 }

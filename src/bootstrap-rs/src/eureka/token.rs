@@ -56,7 +56,7 @@ impl Token {
 
         while !src.is_empty() {
             if let Some((token, remaining_src)) = Token::lex(src) {
-                current_position.relative_move(token.relative_end());
+                current_position.advance_str(token.unlex());
                 result.push(token);
                 src = remaining_src;
             } else {
@@ -65,15 +65,6 @@ impl Token {
         }
 
         Ok(result)
-    }
-
-    pub fn relative_end(&self) -> Position {
-        match self {
-            Self::Identifier(identifier) => identifier.relative_end(),
-            Self::Keyword(keyword) => keyword.relative_end(),
-            Self::Padding(padding) => padding.relative_end(),
-            Self::Punctuator(punctuator) => punctuator.relative_end(),
-        }
     }
 }
 

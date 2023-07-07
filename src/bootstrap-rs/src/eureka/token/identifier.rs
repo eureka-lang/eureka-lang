@@ -1,7 +1,6 @@
 use super::lex;
 use crate::eureka::token::Token;
 use crate::miscellaneous::DisplayName;
-use crate::text::Position;
 pub use restricted::Identifier;
 use std::fmt;
 
@@ -40,10 +39,6 @@ mod restricted {
 impl Identifier {
     pub fn new(value: &str) -> Identifier {
         lex::entirely(Identifier::lex)(value)
-    }
-
-    pub fn relative_end(&self) -> Position {
-        Position::new(1, self.unlex().len() + 1)
     }
 }
 
@@ -113,11 +108,5 @@ mod tests {
         for src in ["", "99", "if", "return", "#if", "+"] {
             assert!(Identifier::lex(src).is_none());
         }
-    }
-
-    #[test]
-    fn relative_end() {
-        assert_eq!(Identifier::new("a").relative_end(), Position::new(1, 2));
-        assert_eq!(Identifier::new("a_b").relative_end(), Position::new(1, 4));
     }
 }

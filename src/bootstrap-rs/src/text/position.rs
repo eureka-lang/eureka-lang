@@ -52,15 +52,6 @@ impl Position {
             self.advance(c);
         }
     }
-
-    pub fn relative_move(&mut self, to: Position) {
-        if to.line() == 1 {
-            self.set_column(self.column() + to.column() - 1);
-        } else {
-            self.set_line(self.line() + to.line() - 1);
-            self.set_column(to.column());
-        }
-    }
 }
 
 #[cfg(test)]
@@ -118,23 +109,5 @@ mod tests {
         assert_eq!((position.line(), position.column()), (4, 1));
         position.advance('\n');
         assert_eq!((position.line(), position.column()), (5, 1));
-    }
-
-    #[test]
-    fn position_relative_move() {
-        let mut position = Position::new(10, 20);
-        assert!(position.line() == 10 && position.column() == 20);
-
-        position.relative_move(Position::new(1, 1));
-        assert!(position.line() == 10 && position.column() == 20);
-
-        position.relative_move(Position::new(1, 2));
-        assert!(position.line() == 10 && position.column() == 21);
-
-        position.relative_move(Position::new(2, 1));
-        assert!(position.line() == 11 && position.column() == 1);
-
-        position.relative_move(Position::new(3, 4));
-        assert!(position.line() == 13 && position.column() == 4);
     }
 }

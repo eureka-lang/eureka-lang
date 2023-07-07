@@ -27,7 +27,7 @@ impl Lexer {
         match self.tokens.pop() {
             None => None,
             Some(token) => {
-                self.position.relative_move(token.relative_end());
+                self.position.advance_str(token.unlex());
                 Some(token)
             }
         }
