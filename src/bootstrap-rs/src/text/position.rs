@@ -47,6 +47,12 @@ impl Position {
         }
     }
 
+    pub fn advance_str(&mut self, s: &str) {
+        for c in s.chars() {
+            self.advance(c);
+        }
+    }
+
     pub fn relative_move(&mut self, to: Position) {
         if to.line() == 1 {
             self.set_column(self.column() + to.column() - 1);
