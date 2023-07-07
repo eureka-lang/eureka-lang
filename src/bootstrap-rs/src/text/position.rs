@@ -36,6 +36,17 @@ impl Position {
         *self = Position::new(self.line(), column);
     }
 
+    pub fn advance(&mut self, c: char) {
+        match c {
+            ' '..='~' => self.set_column(self.column() + 1),
+            '\n' => {
+                self.set_line(self.line() + 1);
+                self.set_column(1);
+            }
+            _ => unimplemented!(),
+        }
+    }
+
     pub fn relative_move(&mut self, to: Position) {
         if to.line() == 1 {
             self.set_column(self.column() + to.column() - 1);
@@ -74,6 +85,33 @@ mod tests {
 
         assert_eq!(position.line(), 8);
         assert_eq!(position.column(), 4);
+    }
+
+    #[test]
+    fn advance_position() {
+        let mut position = Position::start();
+
+        assert_eq!((position.line(), position.column()), (1, 1));
+        position.advance(' ');
+        assert_eq!((position.line(), position.column()), (1, 2));
+        position.advance('!');
+        assert_eq!((position.line(), position.column()), (1, 3));
+        position.advance('9');
+        assert_eq!((position.line(), position.column()), (1, 4));
+        position.advance('\n');
+        assert_eq!((position.line(), position.column()), (2, 1));
+        position.advance('~');
+        assert_eq!((position.line(), position.column()), (2, 2));
+        position.advance('a');
+        assert_eq!((position.line(), position.column()), (2, 3));
+        position.advance('\n');
+        assert_eq!((position.line(), position.column()), (3, 1));
+        position.advance('A');
+        assert_eq!((position.line(), position.column()), (3, 2));
+        position.advance('\n');
+        assert_eq!((position.line(), position.column()), (4, 1));
+        position.advance('\n');
+        assert_eq!((position.line(), position.column()), (5, 1));
     }
 
     #[test]
