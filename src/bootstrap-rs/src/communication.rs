@@ -1,10 +1,7 @@
+use crate::eureka::token::Token;
 pub use position::Position;
 
 mod position;
-
-pub fn missing(something: &str) -> String {
-    format!("missing {something}")
-}
 
 pub trait DisplayName {
     fn display_name() -> &'static str;
@@ -13,5 +10,13 @@ pub trait DisplayName {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct PositionError {
     pub position: Position,
-    pub message: String,
+    pub error: Error,
+}
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum Error {
+    Missing(&'static str),
+    MissingToken(Token),
+    UnexpectedCharOrEndOfFile(Option<char>),
+    UnexpectedToken(Token),
 }

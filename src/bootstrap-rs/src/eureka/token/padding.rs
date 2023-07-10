@@ -1,10 +1,11 @@
-use crate::communication::DisplayName;
+use crate::communication::{DisplayName, Error};
 use crate::eureka::code::Code;
 use crate::eureka::token::Token;
 pub use restricted::Padding;
 use std::fmt;
 
 mod restricted {
+    use crate::communication::Error;
     use crate::eureka::code::Code;
 
     #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -36,7 +37,7 @@ mod restricted {
             }
         }
 
-        pub fn lex2(code: &mut Code) -> Result<Option<Self>, String> {
+        pub fn lex2(code: &mut Code) -> Result<Option<Self>, Error> {
             let mut value = String::new();
 
             while super::lex_whitespace(code, &mut value) || super::lex_comment(code, &mut value)? {
@@ -55,7 +56,7 @@ mod restricted {
     }
 }
 
-fn lex_comment(code: &mut Code, buffer: &mut String) -> Result<bool, String> {
+fn lex_comment(code: &mut Code, buffer: &mut String) -> Result<bool, Error> {
     if let Some('#') = code.peek() {
         buffer.push(code.pop().unwrap());
 
@@ -67,7 +68,7 @@ fn lex_comment(code: &mut Code, buffer: &mut String) -> Result<bool, String> {
             buffer.push(code.pop().unwrap());
             return Ok(true);
         } else {
-            return Err(format!("unexpected: {:?}", code.peek()));
+            return Err(Error::UnexpectedCharOrEndOfFile(code.peek()));
         }
     }
 

@@ -1,7 +1,6 @@
-use crate::communication::{missing, DisplayName};
+use crate::communication::{DisplayName, Error};
 use crate::eureka::lexer::Lexer;
 use crate::eureka::token::Token;
-use std::fmt;
 
 pub fn optional<T: TryFrom<Token>>(lexer: &mut Lexer) -> Option<T> {
     if let Some(token) = lexer.peek().cloned() {
@@ -14,13 +13,13 @@ pub fn optional<T: TryFrom<Token>>(lexer: &mut Lexer) -> Option<T> {
     None
 }
 
-pub fn required<T: DisplayName + TryFrom<Token>>(lexer: &mut Lexer) -> Result<T, String> {
-    optional::<T>(lexer).ok_or_else(|| missing(T::display_name()))
+pub fn required<T: DisplayName + TryFrom<Token>>(lexer: &mut Lexer) -> Result<T, Error> {
+    optional::<T>(lexer).ok_or_else(|| Error::Missing(T::display_name()))
 }
 
-pub fn expected<T>(lexer: &mut Lexer, expected_token: T) -> Result<(), String>
+pub fn expected<T>(lexer: &mut Lexer, expected_token: T) -> Result<(), Error>
 where
-    T: Eq + PartialEq + fmt::Display + DisplayName + TryFrom<Token>,
+    T: Eq + PartialEq + Into<Token> + TryFrom<Token>,
 {
     if let Some(token) = lexer.peek().cloned() {
         if let Ok(actual_token) = T::try_from(token) {
@@ -31,11 +30,7 @@ where
         }
     }
 
-    Err(missing(&format!(
-        "{}: {}",
-        T::display_name(),
-        expected_token.to_string(),
-    )))
+    Err(Error::MissingToken(expected_token.into()))
 }
 
 #[cfg(test)]
@@ -73,7 +68,7 @@ mod tests {
 
         let padding2 = required::<Padding>(&mut lexer);
 
-        assert_eq!(padding2, Err("missing padding".to_string()));
+        assert_eq!(padding2, Err(Error::Missing("padding")));
         assert_eq!(lexer.peek(), Some(&Token::Keyword(Keyword::Fn)));
     }
 
@@ -83,13 +78,13 @@ mod tests {
         assert_eq!(lexer.peek(), Some(&Keyword::Fn.into()));
 
         assert_eq!(
-            Err("missing keyword: \"return\"".to_string()),
+            Err(Error::MissingToken(Keyword::Return.into())),
             expected(&mut lexer, Keyword::Return),
         );
         assert_eq!(lexer.peek(), Some(&Keyword::Fn.into()));
 
         assert_eq!(
-            Err("missing identifier: \"value\"".to_string()),
+            Err(Error::MissingToken(Identifier::new("value").into())),
             expected(&mut lexer, Identifier::new("value")),
         );
         assert_eq!(lexer.peek(), Some(&Keyword::Fn.into()));
@@ -104,7 +99,7 @@ mod tests {
         assert_eq!(lexer.peek(), None);
 
         assert_eq!(
-            Err("missing punctuator: \")\"".to_string()),
+            Err(Error::MissingToken(Punctuator::RightParenthesis.into())),
             expected(&mut lexer, Punctuator::RightParenthesis),
         );
         assert_eq!(lexer.peek(), None);

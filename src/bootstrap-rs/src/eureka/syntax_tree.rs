@@ -1,3 +1,4 @@
+use crate::communication::Error;
 use crate::eureka::lexer::Lexer;
 use crate::eureka::token::{Identifier, Keyword, Padding, Punctuator, Token};
 
@@ -9,12 +10,12 @@ struct Module {
     definitions: Vec<PaddedDefinition>,
 }
 
-fn parse_module(lexer: &mut Lexer) -> Result<Module, String> {
+fn parse_module(lexer: &mut Lexer) -> Result<Module, Error> {
     let pre_definitions_padding = parse::optional(lexer);
     let definitions = zero_or_more(parse_padded_definition)(lexer)?;
 
     if let Some(token) = lexer.peek() {
-        return Err(format!("unexpected token: {}", token));
+        return Err(Error::UnexpectedToken(token.clone()));
     }
 
     Ok(Module {
@@ -29,7 +30,7 @@ struct PaddedDefinition {
     post_definition_padding: Option<Padding>,
 }
 
-fn parse_padded_definition(lexer: &mut Lexer) -> Result<Option<PaddedDefinition>, String> {
+fn parse_padded_definition(lexer: &mut Lexer) -> Result<Option<PaddedDefinition>, Error> {
     if let Some(definition) = parse_definition(lexer)? {
         let post_definition_padding = parse::optional(lexer);
 
@@ -47,7 +48,7 @@ enum Definition {
     Function(FunctionDefinition),
 }
 
-fn parse_definition(lexer: &mut Lexer) -> Result<Option<Definition>, String> {
+fn parse_definition(lexer: &mut Lexer) -> Result<Option<Definition>, Error> {
     if let Some(definition) = parse_function_definition(lexer)? {
         Ok(Some(Definition::Function(definition)))
     } else {
@@ -68,7 +69,7 @@ struct FunctionDefinition {
     // Punctuator::RightBrace
 }
 
-fn parse_function_definition(lexer: &mut Lexer) -> Result<Option<FunctionDefinition>, String> {
+fn parse_function_definition(lexer: &mut Lexer) -> Result<Option<FunctionDefinition>, Error> {
     if lexer.peek() != Some(&Token::Keyword(Keyword::Fn)) {
         return Ok(None);
     }
@@ -92,9 +93,9 @@ fn parse_function_definition(lexer: &mut Lexer) -> Result<Option<FunctionDefinit
     }))
 }
 
-fn zero_or_more<T, F>(f: F) -> impl Fn(&mut Lexer) -> Result<Vec<T>, String>
+fn zero_or_more<T, F>(f: F) -> impl Fn(&mut Lexer) -> Result<Vec<T>, Error>
 where
-    F: Fn(&mut Lexer) -> Result<Option<T>, String>,
+    F: Fn(&mut Lexer) -> Result<Option<T>, Error>,
 {
     move |lexer: &mut Lexer| {
         let mut result = Vec::new();
@@ -213,7 +214,7 @@ mod tests {
         let mut lexer = Lexer::lex_all("fn main() {}return").unwrap();
 
         let actual = parse_module(&mut lexer).unwrap_err();
-        let expected = "unexpected token: \"return\"";
+        let expected = Error::UnexpectedToken(Keyword::Return.into());
 
         assert_eq!(expected, actual);
     }
