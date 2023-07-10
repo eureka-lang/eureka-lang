@@ -1,6 +1,6 @@
 use super::name::lex_unquoted_name;
+use crate::communication::DisplayName;
 use crate::eureka::token::Token;
-use crate::miscellaneous::DisplayName;
 use std::fmt;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]

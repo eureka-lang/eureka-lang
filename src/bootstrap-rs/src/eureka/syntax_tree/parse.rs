@@ -1,6 +1,6 @@
+use crate::communication::{missing, DisplayName};
 use crate::eureka::lexer::Lexer;
 use crate::eureka::token::Token;
-use crate::miscellaneous::{missing, DisplayName};
 use std::fmt;
 
 pub fn optional<T: TryFrom<Token>>(lexer: &mut Lexer) -> Option<T> {

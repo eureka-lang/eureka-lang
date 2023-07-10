@@ -1,6 +1,6 @@
 use super::lex;
+use crate::communication::DisplayName;
 use crate::eureka::token::Token;
-use crate::miscellaneous::DisplayName;
 pub use restricted::Identifier;
 use std::fmt;
 

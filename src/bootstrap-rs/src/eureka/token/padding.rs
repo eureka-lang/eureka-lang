@@ -1,6 +1,6 @@
+use crate::communication::DisplayName;
 use crate::eureka::code::Code;
 use crate::eureka::token::Token;
-use crate::miscellaneous::DisplayName;
 pub use restricted::Padding;
 use std::fmt;
 
