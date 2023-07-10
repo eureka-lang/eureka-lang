@@ -110,7 +110,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::text::Position;
+    use crate::communication::Position;
 
     #[test]
     fn test_parse_function_definition_success() {

@@ -1,4 +1,4 @@
-use crate::text::Position;
+use crate::communication::Position;
 pub use identifier::Identifier;
 pub use keyword::Keyword;
 pub use padding::Padding;

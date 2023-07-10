@@ -1,5 +1,5 @@
+use crate::communication::Position;
 use crate::eureka::token::Token;
-use crate::text::Position;
 
 pub struct Lexer {
     tokens: Vec<Token>,

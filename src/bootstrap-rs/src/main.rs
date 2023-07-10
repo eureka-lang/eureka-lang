@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
+mod communication;
 mod eureka;
 mod miscellaneous;
-mod text;
 
 fn main() {
     println!("Hello, world!");
