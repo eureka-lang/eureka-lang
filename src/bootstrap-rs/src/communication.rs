@@ -9,3 +9,9 @@ pub fn missing(something: &str) -> String {
 pub trait DisplayName {
     fn display_name() -> &'static str;
 }
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct PositionError {
+    pub position: Position,
+    pub message: String,
+}
