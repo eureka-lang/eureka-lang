@@ -15,7 +15,7 @@ mod restricted {
 
     impl Padding {
         pub fn lex(src: &str) -> Option<(Padding, &str)> {
-            let mut code = Code::new(src);
+            let mut code = Code::normalize(src);
 
             if let Ok(Some(padding)) = Self::lex2(&mut code) {
                 let mut r_count = 0;
@@ -87,7 +87,7 @@ fn lex_whitespace(code: &mut Code, buffer: &mut String) -> bool {
 
 impl Padding {
     pub fn new(value: &str) -> Padding {
-        let mut code = Code::new(&format!("{value};\n"));
+        let mut code = Code::normalize(&format!("{value};\n"));
         if let Ok(Some(padding)) = Self::lex2(&mut code) {
             if padding.unlex() == value {
                 return padding;
@@ -202,7 +202,7 @@ mod tests {
             ),
             ("## ## ##\n#\n", "## ## ##\n", Ok(true)),
         ] {
-            let mut code = Code::new(src);
+            let mut code = Code::normalize(src);
             let mut actual_buffer = String::new();
 
             assert_eq!(expected_result, lex_comment(&mut code, &mut actual_buffer));
@@ -227,7 +227,7 @@ mod tests {
             ("\n", "\n", true),
             ("\nFn \n", "\n", true),
         ] {
-            let mut code = Code::new(src);
+            let mut code = Code::normalize(src);
             let mut actual_buffer = String::new();
 
             assert_eq!(

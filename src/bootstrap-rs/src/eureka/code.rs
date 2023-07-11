@@ -3,7 +3,7 @@ pub struct Code {
 }
 
 impl Code {
-    pub fn new(src: &str) -> Self {
+    pub fn normalize(src: &str) -> Self {
         let src = normalize(src);
         let mut chars: Vec<char> = src.chars().collect();
         chars.reverse();
@@ -39,7 +39,7 @@ mod tests {
 
     #[test]
     fn empty() {
-        let mut code = Code::new("");
+        let mut code = Code::normalize("");
 
         assert!(code.peek().is_none());
         assert!(code.pop().is_none());
@@ -53,7 +53,7 @@ mod tests {
     #[test]
     fn one_line() {
         for src in ["a+b", "a+b\n", "a+b\r\n"] {
-            let mut code = Code::new(src);
+            let mut code = Code::normalize(src);
 
             assert_eq!(code.peek(), Some('a'));
             assert_eq!(code.pop(), Some('a'));
@@ -81,7 +81,7 @@ mod tests {
             "A\r\nB\n",
             "A\r\nB\r\n",
         ] {
-            let mut code = Code::new(src);
+            let mut code = Code::normalize(src);
 
             assert_eq!(code.pop(), Some('A'));
             assert_eq!(code.pop(), Some('\n'));
