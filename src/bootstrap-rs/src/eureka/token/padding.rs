@@ -15,7 +15,7 @@ mod restricted {
 
     impl Padding {
         pub fn lex(src: &str) -> Option<(Padding, &str)> {
-            let mut code = Code::normalize(src);
+            let mut code = Code::normalize(src).unwrap();
 
             if let Ok(Some(padding)) = Self::lex2(&mut code) {
                 let mut r_count = 0;
@@ -87,7 +87,7 @@ fn lex_whitespace(code: &mut Code, buffer: &mut String) -> bool {
 
 impl Padding {
     pub fn new(value: &str) -> Padding {
-        let mut code = Code::normalize(&format!("{value};\n"));
+        let mut code = Code::new(&format!("{value};\n"));
         if let Ok(Some(padding)) = Self::lex2(&mut code) {
             if padding.unlex() == value {
                 return padding;
@@ -146,27 +146,20 @@ mod tests {
     #[test]
     fn lex_succeeds() {
         for (src, expected_padding, expected_remaining_src) in [
-            (" ", " \n", ""),
-            (" else", " ", "else"),
-            ("\t", "\t\n", ""),
-            ("\t{", "\t", "{"),
+            (" \n", " \n", ""),
+            (" else\n", " ", "else\n"),
             ("\n", "\n", ""),
-            ("\nSome ", "\n", "Some "),
-            ("\r\n", "\n", ""),
-            ("\r\nNone\t", "\n", "None\t"),
-            ("#ok", "#ok\n", ""),
+            ("\nSome \n", "\n", "Some \n"),
             ("#ok\n", "#ok\n", ""),
-            ("#ok\n2 ", "#ok\n", "2 "),
-            ("#ok\r\n", "#ok\n", ""),
-            ("#ok\r\n2 ", "#ok\n", "2 "),
-            (" \t\n\r\n\n\t ...", " \t\n\n\n\t ", "..."),
-            (" #1\n?", " #1\n", "?"),
-            ("#1\n ?", "#1\n ", "?"),
-            (" \t\n\r\n#x\n", " \t\n\n#x\n", ""),
+            ("#ok\n2 \n", "#ok\n", "2 \n"),
+            (" \n\n ...\n", " \n\n ", "...\n"),
+            (" #1\n?\n", " #1\n", "?\n"),
+            ("#1\n ?\n", "#1\n ", "?\n"),
+            (" \n\n#x\n", " \n\n#x\n", ""),
             (
-                "\n #1\n\t#2\r\n ##aA!~\n\n  \t\t\r\n\r\n#4\r\nSome \t\n\r\n#x\n",
-                "\n #1\n\t#2\n ##aA!~\n\n  \t\t\n\n#4\n",
-                "Some \t\n\r\n#x\n",
+                "\n #1\n#2\n ##aA!~\n\n  \n\n#4\nSome \n\n#x\n",
+                "\n #1\n#2\n ##aA!~\n\n  \n\n#4\n",
+                "Some \n\n#x\n",
             ),
         ] {
             let (actual_padding, actual_remaining_src) = Padding::lex(src).unwrap();
@@ -178,7 +171,7 @@ mod tests {
 
     #[test]
     fn lex_fails() {
-        for src in ["", "_", "-", "x", "1", "+", "\r", "\r ", "#\r", "#\r "] {
+        for src in ["", "_\n", "-\n", "x\n", "1\n", "+\n"] {
             assert!(Padding::lex(src).is_none());
         }
     }
@@ -196,13 +189,13 @@ mod tests {
                 Ok(true),
             ),
             (
-                "#a-zA-Z0-9?()\t !~ #ok\n    {\n",
-                "#a-zA-Z0-9?()\t !~ #ok\n",
+                "#a-zA-Z0-9?() !~ #ok\n    {\n",
+                "#a-zA-Z0-9?() !~ #ok\n",
                 Ok(true),
             ),
             ("## ## ##\n#\n", "## ## ##\n", Ok(true)),
         ] {
-            let mut code = Code::normalize(src);
+            let mut code = Code::new(src);
             let mut actual_buffer = String::new();
 
             assert_eq!(expected_result, lex_comment(&mut code, &mut actual_buffer));
@@ -215,19 +208,12 @@ mod tests {
         for (src, expected_buffer, expected_result) in [
             ("", "", false),
             ("x\n", "", false),
-            ("\rX\n", "", false),
-            ("\r \n", "", false),
-            ("\r X\n", "", false),
-            ("\r\t\n", "", false),
-            ("\r\r\n", "", false),
             (" \n", " \n", true),
             (" x\n", " ", true),
-            ("\t\n", "\t\n", true),
-            ("\t{ \n", "\t", true),
             ("\n", "\n", true),
             ("\nFn \n", "\n", true),
         ] {
-            let mut code = Code::normalize(src);
+            let mut code = Code::new(src);
             let mut actual_buffer = String::new();
 
             assert_eq!(

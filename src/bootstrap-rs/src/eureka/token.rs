@@ -164,26 +164,25 @@ mod tests {
 
     #[test]
     fn lex_fails() {
-        for src in ["", "\0", "\x1B"] {
-            assert!(Token::lex(src).is_none());
-        }
+        assert!(Token::lex("").is_none());
     }
 
     #[test]
     fn lex_all_fails() {
-        assert_eq!(Token::lex_all("\x1B"), Err(Position::new(1, 1)));
-
-        assert_eq!(Token::lex_all("\0"), Err(Position::new(1, 1)));
-        assert_eq!(Token::lex_all("fn\0"), Err(Position::new(1, 3)));
-        assert_eq!(Token::lex_all("fn \0"), Err(Position::new(1, 4)));
-        assert_eq!(Token::lex_all("fn main\0"), Err(Position::new(1, 8)));
-        assert_eq!(Token::lex_all("fn main(\0"), Err(Position::new(1, 9)));
-        assert_eq!(Token::lex_all("fn main()\0"), Err(Position::new(1, 10)));
-        assert_eq!(Token::lex_all("fn main()\n\0"), Err(Position::new(2, 1)));
-        assert_eq!(Token::lex_all("fn main()\n{\0"), Err(Position::new(2, 2)));
-        assert_eq!(Token::lex_all("fn main()\n{\n\0"), Err(Position::new(3, 1)));
+        assert_eq!(Token::lex_all("`\n"), Err(Position::new(1, 1)));
+        assert_eq!(Token::lex_all("fn`\n"), Err(Position::new(1, 3)));
+        assert_eq!(Token::lex_all("fn `\n"), Err(Position::new(1, 4)));
+        assert_eq!(Token::lex_all("fn main`\n"), Err(Position::new(1, 8)));
+        assert_eq!(Token::lex_all("fn main(`\n"), Err(Position::new(1, 9)));
+        assert_eq!(Token::lex_all("fn main()`\n"), Err(Position::new(1, 10)));
+        assert_eq!(Token::lex_all("fn main()\n`\n"), Err(Position::new(2, 1)));
+        assert_eq!(Token::lex_all("fn main()\n{`\n"), Err(Position::new(2, 2)));
         assert_eq!(
-            Token::lex_all("fn main()\n{\n}\0"),
+            Token::lex_all("fn main()\n{\n`\n"),
+            Err(Position::new(3, 1))
+        );
+        assert_eq!(
+            Token::lex_all("fn main()\n{\n}`\n"),
             Err(Position::new(3, 2)),
         );
     }

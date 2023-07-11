@@ -15,10 +15,18 @@ pub struct PositionError {
     pub error: Error,
 }
 
+impl PositionError {
+    pub fn new(position: Position, error: Error) -> PositionError {
+        PositionError { position, error }
+    }
+}
+
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Error {
     Missing(&'static str),
+    MissingChar(char),
     MissingToken(Token),
+    UnexpectedChar(char),
     UnexpectedCharOrEndOfFile(Option<char>),
     UnexpectedToken(Token),
 }

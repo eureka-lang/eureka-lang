@@ -13,7 +13,7 @@ pub enum Punctuator {
 
 impl Punctuator {
     pub fn lex(src: &str) -> Option<(Punctuator, &str)> {
-        let mut code = Code::normalize(src);
+        let mut code = Code::normalize(src).unwrap();
         match Self::lex2(&mut code) {
             None => None,
             Some(punctuator) => Some((punctuator, &src[punctuator.unlex().len()..])),
