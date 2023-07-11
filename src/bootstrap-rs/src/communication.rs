@@ -3,6 +3,8 @@ pub use position::Position;
 
 mod position;
 
+pub const INVALID_VALUE: &str = "invalid value";
+
 pub trait DisplayName {
     fn display_name() -> &'static str;
 }

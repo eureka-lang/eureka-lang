@@ -1,4 +1,4 @@
-use crate::communication::{DisplayName, Error};
+use crate::communication::{DisplayName, Error, INVALID_VALUE};
 use crate::eureka::code::Code;
 use crate::eureka::token::Token;
 pub use restricted::Padding;
@@ -94,7 +94,7 @@ impl Padding {
             }
         }
 
-        panic!("invalid value");
+        panic!("{INVALID_VALUE}");
     }
 }
 
