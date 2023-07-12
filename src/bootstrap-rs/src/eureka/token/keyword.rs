@@ -27,6 +27,14 @@ impl Keyword {
         None
     }
 
+    pub fn lex2(src: &str) -> Option<Keyword> {
+        if let Ok(index) = Keyword::MAP.binary_search_by_key(&src, |&(key, _)| key) {
+            Some(Keyword::MAP[index].1)
+        } else {
+            None
+        }
+    }
+
     pub fn unlex(&self) -> &'static str {
         let index = Keyword::MAP
             .binary_search_by_key(self, |&(_, key)| key)
