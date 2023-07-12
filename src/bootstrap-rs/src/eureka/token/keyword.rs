@@ -17,12 +17,6 @@ impl Keyword {
         ("return", Keyword::Return),
     ];
 
-    const REVERSE_MAP: [(Keyword, &str); 3] = [
-        (Keyword::Fn, "fn"),
-        (Keyword::If, "if"),
-        (Keyword::Return, "return"),
-    ];
-
     pub fn lex(src: &str) -> Option<(Keyword, &str)> {
         if let Some((name, remaining_src)) = lex_unquoted_name(src) {
             if let Ok(index) = Keyword::MAP.binary_search_by_key(&name, |&(key, _)| key) {
@@ -34,11 +28,11 @@ impl Keyword {
     }
 
     pub fn unlex(&self) -> &'static str {
-        let index = Keyword::REVERSE_MAP
-            .binary_search_by_key(self, |&(key, _)| key)
+        let index = Keyword::MAP
+            .binary_search_by_key(self, |&(_, key)| key)
             .unwrap();
 
-        Keyword::REVERSE_MAP[index].1
+        Keyword::MAP[index].0
     }
 }
 
@@ -94,25 +88,11 @@ mod tests {
     #[test]
     fn map_is_sorted() {
         let mut map = Keyword::MAP.to_vec();
+
         map.sort_by_key(|&(key, _)| key);
         assert_eq!(map, Keyword::MAP.to_vec());
-    }
 
-    #[test]
-    fn reverse_map_is_sorted() {
-        let mut map = Keyword::REVERSE_MAP.to_vec();
-        map.sort_by_key(|&(key, _)| key);
-        assert_eq!(map, Keyword::REVERSE_MAP.to_vec());
-    }
-
-    #[test]
-    fn reverse_map_is_consistent_with_map() {
-        assert_eq!(Keyword::MAP.len(), Keyword::REVERSE_MAP.len());
-
-        let zip = Keyword::MAP.iter().zip(Keyword::REVERSE_MAP.iter());
-        for ((s1, k1), (k2, s2)) in zip {
-            assert_eq!(s1, s2);
-            assert_eq!(k1, k2);
-        }
+        map.sort_by_key(|&(_, key)| key);
+        assert_eq!(map, Keyword::MAP.to_vec());
     }
 }
