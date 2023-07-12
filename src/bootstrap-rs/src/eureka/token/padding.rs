@@ -60,7 +60,7 @@ fn lex_comment(code: &mut Code, buffer: &mut String) -> Result<bool, Error> {
     if let Some('#') = code.peek() {
         buffer.push(code.pop().unwrap());
 
-        while let Some(' '..='~' | '\t') = code.peek() {
+        while let Some(' '..='~') = code.peek() {
             buffer.push(code.pop().unwrap());
         }
 
@@ -78,7 +78,7 @@ fn lex_comment(code: &mut Code, buffer: &mut String) -> Result<bool, Error> {
 fn lex_whitespace(code: &mut Code, buffer: &mut String) -> bool {
     let buffer_len = buffer.len();
 
-    while let Some(' ' | '\t' | '\n') = code.peek() {
+    while let Some(' ' | '\n') = code.peek() {
         buffer.push(code.pop().unwrap());
     }
 

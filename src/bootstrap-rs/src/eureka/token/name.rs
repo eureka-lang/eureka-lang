@@ -60,7 +60,7 @@ mod tests {
 
     #[test]
     fn lex_unquoted_name_fails() {
-        for src in ["", "1", "2x", "-", "$", " ", "\t", "@", "[", "^", "`", "{"] {
+        for src in ["", "1", "2x", "-", "$", " ", "@", "[", "^", "`", "{"] {
             assert!(lex_unquoted_name(src).is_none());
         }
     }
