@@ -8,6 +8,7 @@ mod restricted {
     #[derive(Clone, Debug, Eq, Hash, PartialEq)]
     pub struct Code {
         chars: Vec<char>,
+        position: Position,
     }
 
     impl Code {
@@ -30,7 +31,10 @@ mod restricted {
 
             chars.reverse();
 
-            Ok(Code { chars })
+            Ok(Code {
+                chars,
+                position: Position::start(),
+            })
         }
 
         pub fn peek(&self) -> Option<char> {
@@ -38,7 +42,16 @@ mod restricted {
         }
 
         pub fn pop(&mut self) -> Option<char> {
-            self.chars.pop()
+            if let Some(c) = self.chars.pop() {
+                self.position.advance(c);
+                Some(c)
+            } else {
+                None
+            }
+        }
+
+        pub fn position(&self) -> Position {
+            self.position
         }
     }
 }
