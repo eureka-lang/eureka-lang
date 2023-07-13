@@ -6,7 +6,7 @@ use std::fmt;
 
 mod restricted {
     use super::super::keyword::Keyword;
-    use super::super::name::lex_unquoted_name;
+    use crate::eureka::code::Code;
 
     #[derive(Clone, Debug, Eq, Hash, PartialEq)]
     pub struct Identifier {
@@ -15,16 +15,30 @@ mod restricted {
 
     impl Identifier {
         pub fn lex(src: &str) -> Option<(Identifier, &str)> {
-            if Keyword::lex(src).is_some() {
-                return None;
+            let mut code = Code::normalize(src).unwrap();
+
+            if let Some(Ok(identifier)) = Self::lex2(&mut code) {
+                let len = identifier.unlex().len();
+                Some((identifier, &src[len..]))
+            } else {
+                None
             }
+        }
 
-            if let Some((name, remaining_src)) = lex_unquoted_name(src) {
-                let identifier = Identifier {
-                    value: String::from(name),
-                };
+        pub fn lex2(code: &mut Code) -> Option<Result<Identifier, Keyword>> {
+            if let Some('a'..='z' | 'A'..='Z' | '_') = code.peek() {
+                let mut value = String::new();
+                value.push(code.pop().unwrap());
 
-                return Some((identifier, remaining_src));
+                while let Some('a'..='z' | 'A'..='Z' | '_' | '0'..='9') = code.peek() {
+                    value.push(code.pop().unwrap());
+                }
+
+                if let Some(keyword) = Keyword::lex2(&value) {
+                    return Some(Err(keyword));
+                } else {
+                    return Some(Ok(Identifier { value }));
+                }
             }
 
             None
