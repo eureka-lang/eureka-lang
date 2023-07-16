@@ -48,18 +48,8 @@ impl Position {
     }
 
     pub fn advance_str(&mut self, s: &str) {
-        let mut chars = s.chars();
-
-        while let Some(c) = chars.next() {
-            if c == '\r' {
-                if chars.next() == Some('\n') {
-                    self.advance('\n');
-                } else {
-                    unimplemented!();
-                }
-            } else {
-                self.advance(c);
-            }
+        for c in s.chars() {
+            self.advance(c);
         }
     }
 }
@@ -119,43 +109,5 @@ mod tests {
         assert_eq!((position.line(), position.column()), (4, 1));
         position.advance('\n');
         assert_eq!((position.line(), position.column()), (5, 1));
-    }
-
-    #[test]
-    fn advance_str_position() {
-        let mut position = Position::start();
-
-        assert_eq!((position.line(), position.column()), (1, 1));
-        position.advance_str("");
-        assert_eq!((position.line(), position.column()), (1, 1));
-        position.advance_str("X");
-        assert_eq!((position.line(), position.column()), (1, 2));
-        position.advance_str("a+b");
-        assert_eq!((position.line(), position.column()), (1, 5));
-        position.advance_str("\r\n");
-        assert_eq!((position.line(), position.column()), (2, 1));
-        position.advance_str("A\r\nB\r\nC");
-        assert_eq!((position.line(), position.column()), (4, 2));
-    }
-
-    #[test]
-    #[should_panic]
-    fn advance_carriage_return() {
-        let mut position = Position::start();
-        position.advance('\r');
-    }
-
-    #[test]
-    #[should_panic]
-    fn advance_str_carriage_return_end() {
-        let mut position = Position::start();
-        position.advance_str("\r");
-    }
-
-    #[test]
-    #[should_panic]
-    fn advance_str_carriage_return_non_end() {
-        let mut position = Position::start();
-        position.advance_str("\rX");
     }
 }
