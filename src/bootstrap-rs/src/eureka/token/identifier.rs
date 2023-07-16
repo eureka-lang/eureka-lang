@@ -15,7 +15,7 @@ mod restricted {
 
     impl Identifier {
         pub fn lex(src: &str) -> Option<(Identifier, &str)> {
-            let mut code = Code::normalize(src).unwrap();
+            let mut code = Code::new(src);
 
             if let Some(Ok(identifier)) = Self::lex2(&mut code) {
                 let len = identifier.unlex().len();

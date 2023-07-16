@@ -13,7 +13,7 @@ pub enum Punctuator {
 
 impl Punctuator {
     pub fn lex(src: &str) -> Option<(Punctuator, &str)> {
-        let mut code = Code::normalize(src).unwrap();
+        let mut code = Code::new(src);
         match Self::lex2(&mut code) {
             None => None,
             Some(punctuator) => Some((punctuator, &src[punctuator.unlex().len()..])),
@@ -77,7 +77,7 @@ mod tests {
             ("(a", Punctuator::LeftParenthesis, "a"),
             (")", Punctuator::RightParenthesis, ""),
             ("{\n    ", Punctuator::LeftBrace, "\n    "),
-            ("} else {\r\n", Punctuator::RightBrace, " else {\r\n"),
+            ("} else {\n", Punctuator::RightBrace, " else {\n"),
         ] {
             let (actual_punctuator, actual_remaining_src) = Punctuator::lex(src).unwrap();
 

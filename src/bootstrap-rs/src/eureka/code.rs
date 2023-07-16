@@ -1,8 +1,7 @@
-use crate::communication::PositionError;
 pub use restricted::Code;
 
 mod restricted {
-    use crate::communication::Error::{MissingChar, UnexpectedChar};
+    use crate::communication::Error::UnexpectedChar;
     use crate::communication::{Position, PositionError};
 
     #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -23,10 +22,6 @@ mod restricted {
                 } else {
                     return Err(PositionError::new(position, UnexpectedChar(c)));
                 }
-            }
-
-            if !chars.is_empty() && chars.last().copied() != Some('\n') {
-                return Err(PositionError::new(position, MissingChar('\n')));
             }
 
             chars.reverse();
@@ -60,29 +55,18 @@ impl Code {
     pub fn new(src: &str) -> Code {
         Code::try_new(src).unwrap()
     }
-
-    pub fn normalize(src: &str) -> Result<Code, PositionError> {
-        let mut src = src.replace("\r\n", "\n");
-
-        if !src.is_empty() && src.chars().last() != Some('\n') {
-            src.push('\n');
-        }
-
-        Code::try_new(&src)
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::communication::{Error, Position};
+    use crate::communication::{Error, Position, PositionError};
 
     #[test]
     fn empty() {
         let mut code = Code::new("");
 
         assert_eq!(code, Code::try_new("").unwrap());
-        assert_eq!(code, Code::normalize("").unwrap());
 
         assert!(code.peek().is_none());
         assert!(code.pop().is_none());
@@ -94,60 +78,43 @@ mod tests {
     }
 
     #[test]
-    fn normalize_one_line() {
-        for src in ["a+b", "a+b\n", "a+b\r\n"] {
-            let mut code = Code::normalize(src).unwrap();
+    fn one_line() {
+        let mut code = Code::new("a+b");
 
-            assert_eq!(code.peek(), Some('a'));
-            assert_eq!(code.pop(), Some('a'));
+        assert_eq!(code.peek(), Some('a'));
+        assert_eq!(code.pop(), Some('a'));
 
-            assert_eq!(code.peek(), Some('+'));
-            assert_eq!(code.pop(), Some('+'));
+        assert_eq!(code.peek(), Some('+'));
+        assert_eq!(code.pop(), Some('+'));
 
-            assert_eq!(code.peek(), Some('b'));
-            assert_eq!(code.pop(), Some('b'));
+        assert_eq!(code.peek(), Some('b'));
+        assert_eq!(code.pop(), Some('b'));
 
-            assert_eq!(code.peek(), Some('\n'));
-            assert_eq!(code.pop(), Some('\n'));
-
-            assert!(code.peek().is_none());
-        }
+        assert!(code.peek().is_none());
     }
 
     #[test]
-    fn normalize_two_lines() {
-        for src in [
-            "A\nB",
-            "A\nB\n",
-            "A\nB\r\n",
-            "A\r\nB",
-            "A\r\nB\n",
-            "A\r\nB\r\n",
-        ] {
-            let mut code = Code::normalize(src).unwrap();
+    fn two_lines() {
+        let mut code = Code::new("A\nB\n");
 
-            assert_eq!(code.pop(), Some('A'));
-            assert_eq!(code.pop(), Some('\n'));
-            assert_eq!(code.pop(), Some('B'));
-            assert_eq!(code.pop(), Some('\n'));
+        assert_eq!(code.pop(), Some('A'));
+        assert_eq!(code.pop(), Some('\n'));
+        assert_eq!(code.pop(), Some('B'));
+        assert_eq!(code.pop(), Some('\n'));
 
-            assert!(code.peek().is_none());
-        }
+        assert!(code.peek().is_none());
     }
 
     #[test]
-    fn normalizing_carriage_return_at_end_of_file_fails() {
+    fn unexpected_char() {
         assert_eq!(
             Err(PositionError::new(
                 Position::new(1, 2),
                 Error::UnexpectedChar('\r')
             )),
-            Code::normalize("x\r"),
+            Code::try_new("x\r"),
         );
-    }
 
-    #[test]
-    fn unexpected_char() {
         assert_eq!(
             Err(PositionError::new(
                 Position::new(1, 2),
@@ -162,17 +129,6 @@ mod tests {
                 Error::UnexpectedChar('\0')
             )),
             Code::try_new("a\n\0\n"),
-        );
-    }
-
-    #[test]
-    fn missing_newline_at_end_of_file() {
-        assert_eq!(
-            Err(PositionError::new(
-                Position::new(1, 2),
-                Error::MissingChar('\n')
-            )),
-            Code::try_new("a"),
         );
     }
 }
