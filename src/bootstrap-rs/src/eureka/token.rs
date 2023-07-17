@@ -39,7 +39,7 @@ impl Token {
             }
         }
 
-        if let Some(padding) = Padding::lex2(chars)? {
+        if let Some(padding) = Padding::lex(chars)? {
             return Ok(Some(Token::Padding(padding)));
         }
 

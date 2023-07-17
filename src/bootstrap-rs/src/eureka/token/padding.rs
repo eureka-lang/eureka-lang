@@ -14,18 +14,7 @@ mod restricted {
     }
 
     impl Padding {
-        pub fn lex(src: &str) -> Option<(Padding, &str)> {
-            let mut chars = Chars::new(src);
-
-            if let Ok(Some(padding)) = Self::lex2(&mut chars) {
-                let len = padding.unlex().len();
-                Some((padding, &src[len..]))
-            } else {
-                None
-            }
-        }
-
-        pub fn lex2(chars: &mut Chars) -> Result<Option<Self>, Error> {
+        pub fn lex(chars: &mut Chars) -> Result<Option<Self>, Error> {
             let mut value = String::new();
 
             while super::lex_whitespace(chars, &mut value) || super::lex_comment(chars, &mut value)?
@@ -78,8 +67,8 @@ impl Padding {
     pub fn new(value: &str) -> Padding {
         let mut chars = Chars::new(value);
 
-        if let Ok(Some(padding)) = Self::lex2(&mut chars) {
-            if chars.peek().is_none() && padding.unlex() == value {
+        if let Ok(Some(padding)) = Self::lex(&mut chars) {
+            if chars.peek().is_none() {
                 return padding;
             }
         }
@@ -135,36 +124,45 @@ mod tests {
 
     #[test]
     fn lex_succeeds() {
-        for (src, expected_padding, expected_remaining_src) in [
-            (" ", " ", ""),
-            (" \n", " \n", ""),
-            (" else", " ", "else"),
-            ("\n", "\n", ""),
-            ("\nSome ", "\n", "Some "),
-            ("#ok\n", "#ok\n", ""),
-            ("#ok\n2 \n", "#ok\n", "2 \n"),
-            (" \n\n ...", " \n\n ", "..."),
-            (" #1\n?\n", " #1\n", "?\n"),
-            ("#1\n ?\n", "#1\n ", "?\n"),
-            (" \n\n#x\n", " \n\n#x\n", ""),
+        for (src, expected_padding, expected_peek) in [
+            (" ", " ", None),
+            (" \n", " \n", None),
+            (" else", " ", Some('e')),
+            ("\n", "\n", None),
+            ("\nSome ", "\n", Some('S')),
+            ("#ok\n", "#ok\n", None),
+            ("#ok\n2 \n", "#ok\n", Some('2')),
+            (" \n\n ...", " \n\n ", Some('.')),
+            (" #1\n?\n", " #1\n", Some('?')),
+            ("#1\n ?\n", "#1\n ", Some('?')),
+            (" \n\n#x\n", " \n\n#x\n", None),
             (
                 "\n #1\n#2\n ##aA!~\n\n  \n\n#4\nSome \n\n#x\n",
                 "\n #1\n#2\n ##aA!~\n\n  \n\n#4\n",
-                "Some \n\n#x\n",
+                Some('S'),
             ),
         ] {
-            let (actual_padding, actual_remaining_src) = Padding::lex(src).unwrap();
+            let mut chars = Chars::new(src);
+            let actual_padding = Padding::lex(&mut chars).unwrap().unwrap();
 
             assert_eq!(expected_padding, actual_padding.unlex());
-            assert_eq!(expected_remaining_src, actual_remaining_src);
+            assert_eq!(expected_peek, chars.peek());
         }
     }
 
     #[test]
     fn lex_fails() {
-        for src in ["", "_", "-", "x", "1", "+", "#"] {
-            assert!(Padding::lex(src).is_none());
+        for src in ["", "_", "-", "x", "1", "+"] {
+            let mut chars = Chars::new(src);
+            assert!(Padding::lex(&mut chars).unwrap().is_none());
+            assert_eq!(src.chars().next(), chars.peek());
         }
+    }
+
+    #[test]
+    fn lex_error() {
+        let mut chars = Chars::new("#");
+        assert!(Padding::lex(&mut chars).is_err());
     }
 
     #[test]
