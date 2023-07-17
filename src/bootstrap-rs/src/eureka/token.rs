@@ -45,7 +45,7 @@ impl Token {
             return Ok(Some(Token::Padding(padding)));
         }
 
-        if let Some(punctuator) = Punctuator::lex2(chars) {
+        if let Some(punctuator) = Punctuator::lex(chars) {
             return Ok(Some(Token::Punctuator(punctuator)));
         }
 

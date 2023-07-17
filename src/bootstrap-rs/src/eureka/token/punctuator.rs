@@ -12,15 +12,7 @@ pub enum Punctuator {
 }
 
 impl Punctuator {
-    pub fn lex(src: &str) -> Option<(Punctuator, &str)> {
-        let mut chars = Chars::new(src);
-        match Self::lex2(&mut chars) {
-            None => None,
-            Some(punctuator) => Some((punctuator, &src[punctuator.unlex().len()..])),
-        }
-    }
-
-    pub fn lex2(chars: &mut Chars) -> Option<Self> {
+    pub fn lex(chars: &mut Chars) -> Option<Self> {
         let punctuator = match chars.peek() {
             Some('(') => Self::LeftParenthesis,
             Some(')') => Self::RightParenthesis,
@@ -73,23 +65,26 @@ mod tests {
 
     #[test]
     fn lex_succeeds() {
-        for (src, expected_punctuator, expected_remaining_src) in [
-            ("(a", Punctuator::LeftParenthesis, "a"),
-            (")", Punctuator::RightParenthesis, ""),
-            ("{\n    ", Punctuator::LeftBrace, "\n    "),
-            ("} else {\n", Punctuator::RightBrace, " else {\n"),
+        for (src, expected_punctuator, expected_peek) in [
+            ("(a", Punctuator::LeftParenthesis, Some('a')),
+            (")", Punctuator::RightParenthesis, None),
+            ("{\n    ", Punctuator::LeftBrace, Some('\n')),
+            ("} else", Punctuator::RightBrace, Some(' ')),
         ] {
-            let (actual_punctuator, actual_remaining_src) = Punctuator::lex(src).unwrap();
+            let mut chars = Chars::new(src);
+            let actual_punctuator = Punctuator::lex(&mut chars).unwrap();
 
             assert_eq!(expected_punctuator, actual_punctuator);
-            assert_eq!(expected_remaining_src, actual_remaining_src);
+            assert_eq!(expected_peek, chars.peek());
         }
     }
 
     #[test]
     fn lex_fails() {
         for src in ["", "x", "1", "if", " ", "#"] {
-            assert!(Punctuator::lex(src).is_none());
+            let mut chars = Chars::new(src);
+            assert!(Punctuator::lex(&mut chars).is_none());
+            assert_eq!(src.chars().next(), chars.peek());
         }
     }
 }
