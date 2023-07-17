@@ -1,12 +1,12 @@
 use crate::communication::{DisplayName, Error, INVALID_VALUE};
-use crate::eureka::code::Code;
+use crate::eureka::chars::Chars;
 use crate::eureka::token::Token;
 pub use restricted::Padding;
 use std::fmt;
 
 mod restricted {
     use crate::communication::Error;
-    use crate::eureka::code::Code;
+    use crate::eureka::chars::Chars;
 
     #[derive(Clone, Debug, Eq, Hash, PartialEq)]
     pub struct Padding {
@@ -15,9 +15,9 @@ mod restricted {
 
     impl Padding {
         pub fn lex(src: &str) -> Option<(Padding, &str)> {
-            let mut code = Code::new(src);
+            let mut chars = Chars::new(src);
 
-            if let Ok(Some(padding)) = Self::lex2(&mut code) {
+            if let Ok(Some(padding)) = Self::lex2(&mut chars) {
                 let len = padding.unlex().len();
                 Some((padding, &src[len..]))
             } else {
@@ -25,10 +25,11 @@ mod restricted {
             }
         }
 
-        pub fn lex2(code: &mut Code) -> Result<Option<Self>, Error> {
+        pub fn lex2(chars: &mut Chars) -> Result<Option<Self>, Error> {
             let mut value = String::new();
 
-            while super::lex_whitespace(code, &mut value) || super::lex_comment(code, &mut value)? {
+            while super::lex_whitespace(chars, &mut value) || super::lex_comment(chars, &mut value)?
+            {
             }
 
             if value.is_empty() {
@@ -44,30 +45,30 @@ mod restricted {
     }
 }
 
-fn lex_comment(code: &mut Code, buffer: &mut String) -> Result<bool, Error> {
-    if let Some('#') = code.peek() {
-        buffer.push(code.pop().unwrap());
+fn lex_comment(chars: &mut Chars, buffer: &mut String) -> Result<bool, Error> {
+    if let Some('#') = chars.peek() {
+        buffer.push(chars.pop().unwrap());
 
-        while let Some(' '..='~') = code.peek() {
-            buffer.push(code.pop().unwrap());
+        while let Some(' '..='~') = chars.peek() {
+            buffer.push(chars.pop().unwrap());
         }
 
-        if let Some('\n') = code.peek() {
-            buffer.push(code.pop().unwrap());
+        if let Some('\n') = chars.peek() {
+            buffer.push(chars.pop().unwrap());
             return Ok(true);
         } else {
-            return Err(Error::UnexpectedCharOrEndOfFile(code.peek()));
+            return Err(Error::UnexpectedCharOrEndOfFile(chars.peek()));
         }
     }
 
     Ok(false)
 }
 
-fn lex_whitespace(code: &mut Code, buffer: &mut String) -> bool {
+fn lex_whitespace(chars: &mut Chars, buffer: &mut String) -> bool {
     let buffer_len = buffer.len();
 
-    while let Some(' ' | '\n') = code.peek() {
-        buffer.push(code.pop().unwrap());
+    while let Some(' ' | '\n') = chars.peek() {
+        buffer.push(chars.pop().unwrap());
     }
 
     buffer.len() > buffer_len
@@ -75,10 +76,10 @@ fn lex_whitespace(code: &mut Code, buffer: &mut String) -> bool {
 
 impl Padding {
     pub fn new(value: &str) -> Padding {
-        let mut code = Code::new(value);
+        let mut chars = Chars::new(value);
 
-        if let Ok(Some(padding)) = Self::lex2(&mut code) {
-            if code.peek().is_none() && padding.unlex() == value {
+        if let Ok(Some(padding)) = Self::lex2(&mut chars) {
+            if chars.peek().is_none() && padding.unlex() == value {
                 return padding;
             }
         }
@@ -185,10 +186,10 @@ mod tests {
             ),
             ("## ## ##\n#\n", "## ## ##\n", Ok(true)),
         ] {
-            let mut code = Code::new(src);
+            let mut chars = Chars::new(src);
             let mut actual_buffer = String::new();
 
-            assert_eq!(expected_result, lex_comment(&mut code, &mut actual_buffer));
+            assert_eq!(expected_result, lex_comment(&mut chars, &mut actual_buffer));
             assert_eq!(expected_buffer.to_string(), actual_buffer);
         }
     }
@@ -204,12 +205,12 @@ mod tests {
             ("\n", "\n", true),
             ("\nFn ", "\n", true),
         ] {
-            let mut code = Code::new(src);
+            let mut chars = Chars::new(src);
             let mut actual_buffer = String::new();
 
             assert_eq!(
                 expected_result,
-                lex_whitespace(&mut code, &mut actual_buffer),
+                lex_whitespace(&mut chars, &mut actual_buffer),
             );
             assert_eq!(expected_buffer.to_string(), actual_buffer);
         }

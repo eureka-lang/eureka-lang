@@ -6,7 +6,7 @@ use std::fmt;
 
 mod restricted {
     use super::super::keyword::Keyword;
-    use crate::eureka::code::Code;
+    use crate::eureka::chars::Chars;
 
     #[derive(Clone, Debug, Eq, Hash, PartialEq)]
     pub struct Identifier {
@@ -15,9 +15,9 @@ mod restricted {
 
     impl Identifier {
         pub fn lex(src: &str) -> Option<(Identifier, &str)> {
-            let mut code = Code::new(src);
+            let mut chars = Chars::new(src);
 
-            if let Some(Ok(identifier)) = Self::lex2(&mut code) {
+            if let Some(Ok(identifier)) = Self::lex2(&mut chars) {
                 let len = identifier.unlex().len();
                 Some((identifier, &src[len..]))
             } else {
@@ -25,13 +25,13 @@ mod restricted {
             }
         }
 
-        pub fn lex2(code: &mut Code) -> Option<Result<Identifier, Keyword>> {
-            if let Some('a'..='z' | 'A'..='Z' | '_') = code.peek() {
+        pub fn lex2(chars: &mut Chars) -> Option<Result<Identifier, Keyword>> {
+            if let Some('a'..='z' | 'A'..='Z' | '_') = chars.peek() {
                 let mut value = String::new();
-                value.push(code.pop().unwrap());
+                value.push(chars.pop().unwrap());
 
-                while let Some('a'..='z' | 'A'..='Z' | '_' | '0'..='9') = code.peek() {
-                    value.push(code.pop().unwrap());
+                while let Some('a'..='z' | 'A'..='Z' | '_' | '0'..='9') = chars.peek() {
+                    value.push(chars.pop().unwrap());
                 }
 
                 if let Some(keyword) = Keyword::lex2(&value) {

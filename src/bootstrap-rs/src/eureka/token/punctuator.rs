@@ -1,5 +1,5 @@
 use crate::communication::DisplayName;
-use crate::eureka::code::Code;
+use crate::eureka::chars::Chars;
 use crate::eureka::token::Token;
 use std::fmt;
 
@@ -13,15 +13,15 @@ pub enum Punctuator {
 
 impl Punctuator {
     pub fn lex(src: &str) -> Option<(Punctuator, &str)> {
-        let mut code = Code::new(src);
-        match Self::lex2(&mut code) {
+        let mut chars = Chars::new(src);
+        match Self::lex2(&mut chars) {
             None => None,
             Some(punctuator) => Some((punctuator, &src[punctuator.unlex().len()..])),
         }
     }
 
-    pub fn lex2(code: &mut Code) -> Option<Self> {
-        let punctuator = match code.peek() {
+    pub fn lex2(chars: &mut Chars) -> Option<Self> {
+        let punctuator = match chars.peek() {
             Some('(') => Self::LeftParenthesis,
             Some(')') => Self::RightParenthesis,
             Some('{') => Self::LeftBrace,
@@ -29,7 +29,7 @@ impl Punctuator {
             _ => return None,
         };
 
-        code.pop();
+        chars.pop();
 
         Some(punctuator)
     }
