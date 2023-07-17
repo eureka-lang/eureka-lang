@@ -1,4 +1,5 @@
-use crate::communication::Position;
+use crate::communication::{Error, Position};
+use crate::eureka::code::Code;
 pub use identifier::Identifier;
 pub use keyword::Keyword;
 pub use padding::Padding;
@@ -22,23 +23,36 @@ pub enum Token {
 
 impl Token {
     pub fn lex(src: &str) -> Option<(Token, &str)> {
-        if let Some((identifier, remaining_src)) = Identifier::lex(src) {
-            return Some((identifier.into(), remaining_src));
+        let mut code = Code::new(src);
+
+        if let Ok(Some(token)) = Self::lex2(&mut code) {
+            let len = token.unlex().len();
+            Some((token, &src[len..]))
+        } else {
+            None
+        }
+    }
+
+    pub fn lex2(code: &mut Code) -> Result<Option<Token>, Error> {
+        if let Some(token) = Identifier::lex2(code) {
+            match token {
+                Ok(identifier) => return Ok(Some(Token::Identifier(identifier))),
+                Err(keyword) => return Ok(Some(Token::Keyword(keyword))),
+            }
         }
 
-        if let Some((keyword, remaining_src)) = Keyword::lex(src) {
-            return Some((keyword.into(), remaining_src));
+        if let Some(padding) = Padding::lex2(code)? {
+            return Ok(Some(Token::Padding(padding)));
         }
 
-        if let Some((padding, remaining_src)) = Padding::lex(src) {
-            return Some((padding.into(), remaining_src));
+        if let Some(punctuator) = Punctuator::lex2(code) {
+            return Ok(Some(Token::Punctuator(punctuator)));
         }
 
-        if let Some((punctuator, remaining_src)) = Punctuator::lex(src) {
-            return Some((punctuator.into(), remaining_src));
+        match code.peek() {
+            None => Ok(None),
+            Some(c) => Err(Error::UnexpectedChar(c)),
         }
-
-        None
     }
 
     pub fn unlex(&self) -> &str {
