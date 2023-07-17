@@ -5,8 +5,8 @@ pub use restricted::Identifier;
 use std::fmt;
 
 mod restricted {
-    use super::super::keyword::Keyword;
     use crate::eureka::chars::Chars;
+    use crate::eureka::token::Keyword;
 
     #[derive(Clone, Debug, Eq, Hash, PartialEq)]
     pub struct Identifier {
@@ -79,7 +79,6 @@ impl TryFrom<Token> for Identifier {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::eureka::chars::Chars;
     use crate::eureka::token::Keyword;
 
     #[test]
