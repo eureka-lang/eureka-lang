@@ -8,8 +8,6 @@ use std::fmt;
 
 mod identifier;
 mod keyword;
-mod lex;
-mod name;
 mod padding;
 mod punctuator;
 
@@ -34,7 +32,7 @@ impl Token {
     }
 
     pub fn lex2(chars: &mut Chars) -> Result<Option<Token>, Error> {
-        if let Some(token) = Identifier::lex2(chars) {
+        if let Some(token) = Identifier::lex(chars) {
             match token {
                 Ok(identifier) => return Ok(Some(Token::Identifier(identifier))),
                 Err(keyword) => return Ok(Some(Token::Keyword(keyword))),

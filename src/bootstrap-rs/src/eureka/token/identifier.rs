@@ -1,5 +1,5 @@
-use super::lex;
-use crate::communication::DisplayName;
+use crate::communication::{DisplayName, INVALID_VALUE};
+use crate::eureka::chars::Chars;
 use crate::eureka::token::Token;
 pub use restricted::Identifier;
 use std::fmt;
@@ -14,18 +14,7 @@ mod restricted {
     }
 
     impl Identifier {
-        pub fn lex(src: &str) -> Option<(Identifier, &str)> {
-            let mut chars = Chars::new(src);
-
-            if let Some(Ok(identifier)) = Self::lex2(&mut chars) {
-                let len = identifier.unlex().len();
-                Some((identifier, &src[len..]))
-            } else {
-                None
-            }
-        }
-
-        pub fn lex2(chars: &mut Chars) -> Option<Result<Identifier, Keyword>> {
+        pub fn lex(chars: &mut Chars) -> Option<Result<Identifier, Keyword>> {
             if let Some('a'..='z' | 'A'..='Z' | '_') = chars.peek() {
                 let mut value = String::new();
                 value.push(chars.pop().unwrap());
@@ -52,7 +41,15 @@ mod restricted {
 
 impl Identifier {
     pub fn new(value: &str) -> Identifier {
-        lex::entirely(Identifier::lex)(value)
+        let mut chars = Chars::new(value);
+
+        if let Some(Ok(identifier)) = Self::lex(&mut chars) {
+            if chars.peek().is_none() {
+                return identifier;
+            }
+        }
+
+        panic!("{INVALID_VALUE}");
     }
 }
 
@@ -105,19 +102,22 @@ mod tests {
 
     #[test]
     fn lex_identifier() {
-        for (src, expected_identifier, expected_remaining_src) in [
-            ("_", "_", ""),
-            ("c", "c", ""),
-            ("i += 1;", "i", " += 1;"),
-            ("if_;", "if_", ";"),
-            ("fnX", "fnX", ""),
-            ("fn2", "fn2", ""),
-            ("a_z__A_Z__0_9()", "a_z__A_Z__0_9", "()"),
+        for (src, expected_identifier, expected_peek) in [
+            ("_", "_", None),
+            ("c", "c", None),
+            ("a+b", "a", Some('+')),
+            ("T: ", "T", Some(':')),
+            ("i += 1;", "i", Some(' ')),
+            ("if_;", "if_", Some(';')),
+            ("fnX", "fnX", None),
+            ("fn2", "fn2", None),
+            ("a_z__A_Z__0_9()", "a_z__A_Z__0_9", Some('(')),
         ] {
-            let (actual_identifier, actual_remaining_src) = Identifier::lex(src).unwrap();
+            let mut chars = Chars::new(src);
+            let actual_identifier = Identifier::lex(&mut chars).unwrap().unwrap();
 
             assert_eq!(expected_identifier, actual_identifier.unlex());
-            assert_eq!(expected_remaining_src, actual_remaining_src);
+            assert_eq!(expected_peek, chars.peek());
         }
     }
 
@@ -125,12 +125,14 @@ mod tests {
     fn lex_keyword() {
         for (src, expected_keyword, expected_peek) in [
             ("fn", Keyword::Fn, None),
+            ("if", Keyword::If, None),
+            ("return", Keyword::Return, None),
             ("fn main", Keyword::Fn, Some(' ')),
             ("if a < b {}", Keyword::If, Some(' ')),
             ("return 0;", Keyword::Return, Some(' ')),
         ] {
             let mut chars = Chars::new(src);
-            let actual_keyword = Identifier::lex2(&mut chars).unwrap().unwrap_err();
+            let actual_keyword = Identifier::lex(&mut chars).unwrap().unwrap_err();
 
             assert_eq!(expected_keyword, actual_keyword);
             assert_eq!(expected_peek, chars.peek());
@@ -139,8 +141,12 @@ mod tests {
 
     #[test]
     fn lex_fails() {
-        for src in ["", "99", "if", "return", "#if", "+"] {
-            assert!(Identifier::lex(src).is_none());
+        for src in [
+            "", " ", "1", "2x", "99", "#if", "$", "+", "-", "@", "[", "^", "`", "{",
+        ] {
+            let mut chars = Chars::new(src);
+            assert!(Identifier::lex(&mut chars).is_none());
+            assert_eq!(src.chars().next(), chars.peek());
         }
     }
 }
