@@ -34,7 +34,7 @@ mod restricted {
                     value.push(chars.pop().unwrap());
                 }
 
-                if let Some(keyword) = Keyword::lex2(&value) {
+                if let Some(keyword) = Keyword::lex(&value) {
                     return Some(Err(keyword));
                 } else {
                     return Some(Ok(Identifier { value }));
@@ -82,6 +82,8 @@ impl TryFrom<Token> for Identifier {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::eureka::chars::Chars;
+    use crate::eureka::token::Keyword;
 
     #[test]
     fn new_succeeds() {
@@ -102,18 +104,36 @@ mod tests {
     }
 
     #[test]
-    fn lex_succeeds() {
+    fn lex_identifier() {
         for (src, expected_identifier, expected_remaining_src) in [
             ("_", "_", ""),
             ("c", "c", ""),
             ("i += 1;", "i", " += 1;"),
             ("if_;", "if_", ";"),
+            ("fnX", "fnX", ""),
+            ("fn2", "fn2", ""),
             ("a_z__A_Z__0_9()", "a_z__A_Z__0_9", "()"),
         ] {
             let (actual_identifier, actual_remaining_src) = Identifier::lex(src).unwrap();
 
             assert_eq!(expected_identifier, actual_identifier.unlex());
             assert_eq!(expected_remaining_src, actual_remaining_src);
+        }
+    }
+
+    #[test]
+    fn lex_keyword() {
+        for (src, expected_keyword, expected_peek) in [
+            ("fn", Keyword::Fn, None),
+            ("fn main", Keyword::Fn, Some(' ')),
+            ("if a < b {}", Keyword::If, Some(' ')),
+            ("return 0;", Keyword::Return, Some(' ')),
+        ] {
+            let mut chars = Chars::new(src);
+            let actual_keyword = Identifier::lex2(&mut chars).unwrap().unwrap_err();
+
+            assert_eq!(expected_keyword, actual_keyword);
+            assert_eq!(expected_peek, chars.peek());
         }
     }
 
