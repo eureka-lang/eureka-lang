@@ -121,33 +121,34 @@ mod tests {
 
     #[test]
     fn lex_empty_main() {
-        let src = "fn main() {}";
+        let mut chars = Chars::new("fn main() {}");
 
-        let (token, src) = Token::lex(src).unwrap();
+        let token = Token::lex2(&mut chars).unwrap().unwrap();
         assert_eq!(token, Keyword::Fn.into());
 
-        let (token, src) = Token::lex(src).unwrap();
+        let token = Token::lex2(&mut chars).unwrap().unwrap();
         assert_eq!(token, Padding::new(" ").into());
 
-        let (token, src) = Token::lex(src).unwrap();
+        let token = Token::lex2(&mut chars).unwrap().unwrap();
         assert_eq!(token, Identifier::new("main").into());
 
-        let (token, src) = Token::lex(src).unwrap();
+        let token = Token::lex2(&mut chars).unwrap().unwrap();
         assert_eq!(token, Punctuator::LeftParenthesis.into());
 
-        let (token, src) = Token::lex(src).unwrap();
+        let token = Token::lex2(&mut chars).unwrap().unwrap();
         assert_eq!(token, Punctuator::RightParenthesis.into());
 
-        let (token, src) = Token::lex(src).unwrap();
+        let token = Token::lex2(&mut chars).unwrap().unwrap();
         assert_eq!(token, Padding::new(" ").into());
 
-        let (token, src) = Token::lex(src).unwrap();
+        let token = Token::lex2(&mut chars).unwrap().unwrap();
         assert_eq!(token, Punctuator::LeftBrace.into());
 
-        let (token, src) = Token::lex(src).unwrap();
+        let token = Token::lex2(&mut chars).unwrap().unwrap();
         assert_eq!(token, Punctuator::RightBrace.into());
 
-        assert!(src.is_empty());
+        assert!(Token::lex2(&mut chars).unwrap().is_none());
+        assert!(chars.peek().is_none());
     }
 
     #[test]
@@ -175,8 +176,16 @@ mod tests {
     }
 
     #[test]
-    fn lex_fails() {
-        assert!(Token::lex("").is_none());
+    fn lex_empty() {
+        let mut chars = Chars::new("");
+
+        assert!(chars.peek().is_none());
+        assert!(Token::lex2(&mut chars).unwrap().is_none());
+
+        assert!(chars.peek().is_none());
+        assert!(Token::lex2(&mut chars).unwrap().is_none());
+
+        assert!(chars.peek().is_none());
     }
 
     #[test]
