@@ -1,65 +1,78 @@
-use crate::communication::{Position, PositionError};
-use crate::eureka::chars::Chars;
-use crate::eureka::token::Token;
+pub use restricted::Lexer;
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Lexer {
-    tokens: Vec<Token>,
-    position: Position,
+mod restricted {
+    use crate::communication::{Position, PositionError};
+    use crate::eureka::chars::Chars;
+    use crate::eureka::token::Token;
+
+    #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+    pub struct Lexer {
+        tokens: Vec<Token>,
+        position: Position,
+    }
+
+    impl Lexer {
+        pub fn try_new(src: &str) -> Result<Lexer, PositionError> {
+            let mut chars = Chars::try_new(src)?;
+            let mut tokens = Vec::new();
+            let mut position = Position::start();
+
+            loop {
+                match Token::lex(&mut chars) {
+                    Ok(Some(token)) => {
+                        position.advance_str(token.unlex());
+                        tokens.push(token);
+                    }
+                    Ok(None) => break,
+                    Err(e) => return Err(PositionError::new(position, e)),
+                }
+            }
+
+            tokens.reverse();
+
+            Ok(Lexer {
+                tokens,
+                position: Position::start(),
+            })
+        }
+
+        pub fn peek(&self) -> Option<&Token> {
+            self.tokens.last()
+        }
+
+        pub fn pop(&mut self) -> Option<Token> {
+            match self.tokens.pop() {
+                None => None,
+                Some(token) => {
+                    self.position.advance_str(token.unlex());
+                    Some(token)
+                }
+            }
+        }
+
+        pub fn position(&self) -> Position {
+            self.position
+        }
+    }
 }
 
 impl Lexer {
-    pub fn try_new(src: &str) -> Result<Lexer, PositionError> {
-        let mut chars = Chars::try_new(src)?;
-        let mut tokens = Vec::new();
-        let mut position = Position::start();
-
-        loop {
-            match Token::lex(&mut chars) {
-                Ok(Some(token)) => {
-                    position.advance_str(token.unlex());
-                    tokens.push(token);
-                }
-                Ok(None) => break,
-                Err(e) => return Err(PositionError::new(position, e)),
-            }
-        }
-
-        tokens.reverse();
-
-        Ok(Lexer {
-            tokens,
-            position: Position::start(),
-        })
-    }
-
-    pub fn peek(&self) -> Option<&Token> {
-        self.tokens.last()
-    }
-
-    pub fn pop(&mut self) -> Option<Token> {
-        match self.tokens.pop() {
-            None => None,
-            Some(token) => {
-                self.position.advance_str(token.unlex());
-                Some(token)
-            }
-        }
-    }
-
-    pub fn position(&self) -> Position {
-        self.position
+    pub fn new(src: &str) -> Lexer {
+        Lexer::try_new(src).unwrap()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::eureka::token::{Identifier, Keyword, Padding};
+    use crate::communication::Position;
+    use crate::eureka::token::{Identifier, Keyword, Padding, Token};
 
     #[test]
     fn empty() {
-        let mut lexer = Lexer::try_new("").unwrap();
+        let mut lexer = Lexer::new("");
+
+        assert_eq!(lexer, Lexer::try_new("").unwrap());
 
         assert_eq!(lexer.peek(), None);
         assert_eq!(lexer.pop(), None);
@@ -68,7 +81,7 @@ mod tests {
 
     #[test]
     fn non_empty() {
-        let mut lexer = Lexer::try_new("fn example").unwrap();
+        let mut lexer = Lexer::new("fn example");
 
         assert_eq!(lexer.position(), Position::new(1, 1));
         assert_eq!(lexer.peek(), Some(&Token::from(Keyword::Fn)));

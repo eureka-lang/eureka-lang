@@ -115,7 +115,7 @@ mod tests {
 
     #[test]
     fn test_parse_function_definition_success() {
-        let mut lexer = Lexer::try_new("fn main() {}").unwrap();
+        let mut lexer = Lexer::new("fn main() {}");
         let actual_function_definition = parse_function_definition(&mut lexer).unwrap().unwrap();
         let expected_function_definition = FunctionDefinition {
             pre_identifier_padding: Padding::new(" "),
@@ -128,7 +128,7 @@ mod tests {
 
     #[test]
     fn test_parse_function_definition_err() {
-        let mut lexer = Lexer::try_new("fn main( {}").unwrap();
+        let mut lexer = Lexer::new("fn main( {}");
         assert_eq!(lexer.position(), Position::new(1, 1));
         assert!(parse_function_definition(&mut lexer).is_err());
         assert_eq!(lexer.position(), Position::new(1, 9));
@@ -136,13 +136,13 @@ mod tests {
 
     #[test]
     fn test_parse_function_definition_none() {
-        let mut lexer = Lexer::try_new("return x").unwrap();
+        let mut lexer = Lexer::new("return x");
         assert_eq!(Ok(None), parse_function_definition(&mut lexer));
     }
 
     #[test]
     fn test_zero_or_more_parse_function_definition_zero() {
-        let mut lexer = Lexer::try_new("").unwrap();
+        let mut lexer = Lexer::new("");
 
         let actual = zero_or_more(parse_function_definition)(&mut lexer);
         let expected: Vec<FunctionDefinition> = Vec::new();
@@ -152,7 +152,7 @@ mod tests {
 
     #[test]
     fn test_zero_or_more_parse_function_definition_one() {
-        let mut lexer = Lexer::try_new("fn main() {}").unwrap();
+        let mut lexer = Lexer::new("fn main() {}");
 
         let actual = zero_or_more(parse_function_definition)(&mut lexer);
         let expected: Vec<FunctionDefinition> = vec![FunctionDefinition {
@@ -167,7 +167,7 @@ mod tests {
 
     #[test]
     fn test_zero_or_more_parse_function_definition_two() {
-        let mut lexer = Lexer::try_new("fn a(){}fn b(){}").unwrap();
+        let mut lexer = Lexer::new("fn a(){}fn b(){}");
 
         let actual = zero_or_more(parse_function_definition)(&mut lexer);
         let expected: Vec<FunctionDefinition> = vec![
@@ -190,7 +190,7 @@ mod tests {
 
     #[test]
     fn test_zero_or_more_parse_function_definition_err() {
-        let mut lexer = Lexer::try_new("fn main( {}").unwrap();
+        let mut lexer = Lexer::new("fn main( {}");
         assert_eq!(lexer.position(), Position::new(1, 1));
         assert!(zero_or_more(parse_function_definition)(&mut lexer).is_err());
         assert_eq!(lexer.position(), Position::new(1, 9));
@@ -198,7 +198,7 @@ mod tests {
 
     #[test]
     fn test_parse_module_empty() {
-        let mut lexer = Lexer::try_new("").unwrap();
+        let mut lexer = Lexer::new("");
 
         let actual = parse_module(&mut lexer).unwrap();
         let expected = Module {
@@ -211,7 +211,7 @@ mod tests {
 
     #[test]
     fn test_parse_module_err() {
-        let mut lexer = Lexer::try_new("fn main() {}return").unwrap();
+        let mut lexer = Lexer::new("fn main() {}return");
 
         let actual = parse_module(&mut lexer).unwrap_err();
         let expected = Error::UnexpectedToken(Keyword::Return.into());
@@ -221,7 +221,7 @@ mod tests {
 
     #[test]
     fn test_parse_module_success() {
-        let mut lexer = Lexer::try_new("fn main() {}").unwrap();
+        let mut lexer = Lexer::new("fn main() {}");
 
         let actual = parse_module(&mut lexer).unwrap();
         let expected = Module {
