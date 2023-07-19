@@ -7,16 +7,15 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    pub fn new(mut tokens: Vec<Token>) -> Lexer {
+    pub fn try_new(src: &str) -> Result<Lexer, PositionError> {
+        let mut tokens = Token::lex_all(src)?;
+
         tokens.reverse();
-        Lexer {
+
+        Ok(Lexer {
             tokens,
             position: Position::start(),
-        }
-    }
-
-    pub fn try_new(src: &str) -> Result<Lexer, PositionError> {
-        Token::lex_all(src).map(Lexer::new)
+        })
     }
 
     pub fn peek(&self) -> Option<&Token> {
@@ -45,7 +44,7 @@ mod tests {
 
     #[test]
     fn empty_lexer() {
-        let mut lexer = Lexer::new(Vec::new());
+        let mut lexer = Lexer::try_new("").unwrap();
 
         assert_eq!(lexer.peek(), None);
         assert_eq!(lexer.pop(), None);
