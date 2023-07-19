@@ -15,7 +15,7 @@ impl Lexer {
         }
     }
 
-    pub fn lex_all(src: &str) -> Result<Lexer, PositionError> {
+    pub fn try_new(src: &str) -> Result<Lexer, PositionError> {
         Token::lex_all(src).map(Lexer::new)
     }
 
@@ -54,7 +54,7 @@ mod tests {
 
     #[test]
     fn non_empty_lexer() {
-        let mut lexer = Lexer::lex_all("fn example").unwrap();
+        let mut lexer = Lexer::try_new("fn example").unwrap();
 
         assert_eq!(lexer.position(), Position::new(1, 1));
         assert_eq!(lexer.peek(), Some(&Token::from(Keyword::Fn)));

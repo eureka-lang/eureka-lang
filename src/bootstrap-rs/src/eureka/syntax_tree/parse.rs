@@ -40,7 +40,7 @@ mod tests {
 
     #[test]
     fn test_optional_padding() {
-        let mut lexer = Lexer::lex_all(" fn").unwrap();
+        let mut lexer = Lexer::try_new(" fn").unwrap();
 
         assert_eq!(lexer.peek(), Some(&Token::Padding(Padding::new(" "))));
 
@@ -57,7 +57,7 @@ mod tests {
 
     #[test]
     fn test_required_padding() {
-        let mut lexer = Lexer::lex_all(" fn").unwrap();
+        let mut lexer = Lexer::try_new(" fn").unwrap();
 
         assert_eq!(lexer.peek(), Some(&Token::Padding(Padding::new(" "))));
 
@@ -74,7 +74,7 @@ mod tests {
 
     #[test]
     fn test_expected() {
-        let mut lexer = Lexer::lex_all("fn(value").unwrap();
+        let mut lexer = Lexer::try_new("fn(value").unwrap();
         assert_eq!(lexer.peek(), Some(&Keyword::Fn.into()));
 
         assert_eq!(
