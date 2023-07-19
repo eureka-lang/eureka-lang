@@ -1,4 +1,4 @@
-use crate::communication::{Error, Position};
+use crate::communication::{Error, Position, PositionError};
 use crate::eureka::chars::Chars;
 pub use identifier::Identifier;
 pub use keyword::Keyword;
@@ -20,18 +20,7 @@ pub enum Token {
 }
 
 impl Token {
-    pub fn lex(src: &str) -> Option<(Token, &str)> {
-        let mut chars = Chars::new(src);
-
-        if let Ok(Some(token)) = Self::lex2(&mut chars) {
-            let len = token.unlex().len();
-            Some((token, &src[len..]))
-        } else {
-            None
-        }
-    }
-
-    pub fn lex2(chars: &mut Chars) -> Result<Option<Token>, Error> {
+    pub fn lex(chars: &mut Chars) -> Result<Option<Token>, Error> {
         if let Some(token) = Identifier::lex(chars) {
             match token {
                 Ok(identifier) => return Ok(Some(Token::Identifier(identifier))),
@@ -62,21 +51,21 @@ impl Token {
         }
     }
 
-    pub fn lex_all(mut src: &str) -> Result<Vec<Token>, Position> {
-        let mut result = Vec::new();
-        let mut current_position = Position::start();
+    pub fn lex_all(src: &str) -> Result<Vec<Token>, PositionError> {
+        let mut chars = Chars::try_new(src)?;
+        let mut tokens = Vec::new();
+        let mut position = Position::start();
 
-        while !src.is_empty() {
-            if let Some((token, remaining_src)) = Token::lex(src) {
-                current_position.advance_str(token.unlex());
-                result.push(token);
-                src = remaining_src;
-            } else {
-                return Err(current_position);
+        loop {
+            match Token::lex(&mut chars) {
+                Ok(Some(token)) => {
+                    position.advance_str(token.unlex());
+                    tokens.push(token);
+                }
+                Ok(None) => return Ok(tokens),
+                Err(e) => return Err(PositionError::new(position, e)),
             }
         }
-
-        Ok(result)
     }
 }
 
@@ -123,31 +112,31 @@ mod tests {
     fn lex_empty_main() {
         let mut chars = Chars::new("fn main() {}");
 
-        let token = Token::lex2(&mut chars).unwrap().unwrap();
+        let token = Token::lex(&mut chars).unwrap().unwrap();
         assert_eq!(token, Keyword::Fn.into());
 
-        let token = Token::lex2(&mut chars).unwrap().unwrap();
+        let token = Token::lex(&mut chars).unwrap().unwrap();
         assert_eq!(token, Padding::new(" ").into());
 
-        let token = Token::lex2(&mut chars).unwrap().unwrap();
+        let token = Token::lex(&mut chars).unwrap().unwrap();
         assert_eq!(token, Identifier::new("main").into());
 
-        let token = Token::lex2(&mut chars).unwrap().unwrap();
+        let token = Token::lex(&mut chars).unwrap().unwrap();
         assert_eq!(token, Punctuator::LeftParenthesis.into());
 
-        let token = Token::lex2(&mut chars).unwrap().unwrap();
+        let token = Token::lex(&mut chars).unwrap().unwrap();
         assert_eq!(token, Punctuator::RightParenthesis.into());
 
-        let token = Token::lex2(&mut chars).unwrap().unwrap();
+        let token = Token::lex(&mut chars).unwrap().unwrap();
         assert_eq!(token, Padding::new(" ").into());
 
-        let token = Token::lex2(&mut chars).unwrap().unwrap();
+        let token = Token::lex(&mut chars).unwrap().unwrap();
         assert_eq!(token, Punctuator::LeftBrace.into());
 
-        let token = Token::lex2(&mut chars).unwrap().unwrap();
+        let token = Token::lex(&mut chars).unwrap().unwrap();
         assert_eq!(token, Punctuator::RightBrace.into());
 
-        assert!(Token::lex2(&mut chars).unwrap().is_none());
+        assert!(Token::lex(&mut chars).unwrap().is_none());
         assert!(chars.peek().is_none());
     }
 
@@ -180,25 +169,30 @@ mod tests {
         let mut chars = Chars::new("");
 
         assert!(chars.peek().is_none());
-        assert!(Token::lex2(&mut chars).unwrap().is_none());
+        assert!(Token::lex(&mut chars).unwrap().is_none());
 
         assert!(chars.peek().is_none());
-        assert!(Token::lex2(&mut chars).unwrap().is_none());
+        assert!(Token::lex(&mut chars).unwrap().is_none());
 
         assert!(chars.peek().is_none());
     }
 
     #[test]
     fn lex_all_fails() {
-        assert_eq!(Token::lex_all("`"), Err(Position::new(1, 1)));
-        assert_eq!(Token::lex_all("fn`"), Err(Position::new(1, 3)));
-        assert_eq!(Token::lex_all("fn `"), Err(Position::new(1, 4)));
-        assert_eq!(Token::lex_all("fn main`"), Err(Position::new(1, 8)));
-        assert_eq!(Token::lex_all("fn main(`"), Err(Position::new(1, 9)));
-        assert_eq!(Token::lex_all("fn main()`"), Err(Position::new(1, 10)));
-        assert_eq!(Token::lex_all("fn main()\n`"), Err(Position::new(2, 1)));
-        assert_eq!(Token::lex_all("fn main()\n{`"), Err(Position::new(2, 2)));
-        assert_eq!(Token::lex_all("fn main()\n{\n`"), Err(Position::new(3, 1)));
-        assert_eq!(Token::lex_all("fn main()\n{\n}`"), Err(Position::new(3, 2)));
+        for (src, expected_position) in [
+            ("`", Position::new(1, 1)),
+            ("fn`", Position::new(1, 3)),
+            ("fn `", Position::new(1, 4)),
+            ("fn main`", Position::new(1, 8)),
+            ("fn main(`", Position::new(1, 9)),
+            ("fn main()`", Position::new(1, 10)),
+            ("fn main()\n`", Position::new(2, 1)),
+            ("fn main()\n{`", Position::new(2, 2)),
+            ("fn main()\n{\n`", Position::new(3, 1)),
+            ("fn main()\n{\n}`", Position::new(3, 2)),
+        ] {
+            let position_error = Token::lex_all(src).unwrap_err();
+            assert_eq!(position_error.position, expected_position);
+        }
     }
 }

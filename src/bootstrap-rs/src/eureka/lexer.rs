@@ -1,4 +1,4 @@
-use crate::communication::Position;
+use crate::communication::{Position, PositionError};
 use crate::eureka::token::Token;
 
 pub struct Lexer {
@@ -15,7 +15,7 @@ impl Lexer {
         }
     }
 
-    pub fn lex_all(src: &str) -> Result<Lexer, Position> {
+    pub fn lex_all(src: &str) -> Result<Lexer, PositionError> {
         Token::lex_all(src).map(Lexer::new)
     }
 
