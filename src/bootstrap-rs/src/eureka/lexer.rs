@@ -1,6 +1,8 @@
 use crate::communication::{Position, PositionError};
+use crate::eureka::chars::Chars;
 use crate::eureka::token::Token;
 
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Lexer {
     tokens: Vec<Token>,
     position: Position,
@@ -8,7 +10,20 @@ pub struct Lexer {
 
 impl Lexer {
     pub fn try_new(src: &str) -> Result<Lexer, PositionError> {
-        let mut tokens = Token::lex_all(src)?;
+        let mut chars = Chars::try_new(src)?;
+        let mut tokens = Vec::new();
+        let mut position = Position::start();
+
+        loop {
+            match Token::lex(&mut chars) {
+                Ok(Some(token)) => {
+                    position.advance_str(token.unlex());
+                    tokens.push(token);
+                }
+                Ok(None) => break,
+                Err(e) => return Err(PositionError::new(position, e)),
+            }
+        }
 
         tokens.reverse();
 
@@ -43,7 +58,7 @@ mod tests {
     use crate::eureka::token::{Identifier, Keyword, Padding};
 
     #[test]
-    fn empty_lexer() {
+    fn empty() {
         let mut lexer = Lexer::try_new("").unwrap();
 
         assert_eq!(lexer.peek(), None);
@@ -52,7 +67,7 @@ mod tests {
     }
 
     #[test]
-    fn non_empty_lexer() {
+    fn non_empty() {
         let mut lexer = Lexer::try_new("fn example").unwrap();
 
         assert_eq!(lexer.position(), Position::new(1, 1));
@@ -74,5 +89,24 @@ mod tests {
         assert_eq!(lexer.position(), Position::new(1, 11));
         assert_eq!(lexer.peek(), None);
         assert_eq!(lexer.pop(), None);
+    }
+
+    #[test]
+    fn non_empty_error() {
+        for (src, expected_position) in [
+            ("`", Position::new(1, 1)),
+            ("fn`", Position::new(1, 3)),
+            ("fn `", Position::new(1, 4)),
+            ("fn main`", Position::new(1, 8)),
+            ("fn main(`", Position::new(1, 9)),
+            ("fn main()`", Position::new(1, 10)),
+            ("fn main()\n`", Position::new(2, 1)),
+            ("fn main()\n{`", Position::new(2, 2)),
+            ("fn main()\n{\n`", Position::new(3, 1)),
+            ("fn main()\n{\n}`", Position::new(3, 2)),
+        ] {
+            let position_error = Lexer::try_new(src).unwrap_err();
+            assert_eq!(position_error.position, expected_position);
+        }
     }
 }

@@ -1,4 +1,4 @@
-use crate::communication::{Error, Position, PositionError};
+use crate::communication::Error;
 use crate::eureka::chars::Chars;
 pub use identifier::Identifier;
 pub use keyword::Keyword;
@@ -48,23 +48,6 @@ impl Token {
             Self::Keyword(keyword) => keyword.unlex(),
             Self::Padding(padding) => padding.unlex(),
             Self::Punctuator(punctuator) => punctuator.unlex(),
-        }
-    }
-
-    pub fn lex_all(src: &str) -> Result<Vec<Token>, PositionError> {
-        let mut chars = Chars::try_new(src)?;
-        let mut tokens = Vec::new();
-        let mut position = Position::start();
-
-        loop {
-            match Token::lex(&mut chars) {
-                Ok(Some(token)) => {
-                    position.advance_str(token.unlex());
-                    tokens.push(token);
-                }
-                Ok(None) => return Ok(tokens),
-                Err(e) => return Err(PositionError::new(position, e)),
-            }
         }
     }
 }
@@ -141,30 +124,6 @@ mod tests {
     }
 
     #[test]
-    fn lex_all_empty_main() {
-        let src = "fn main() {}";
-        let actual_tokens = Token::lex_all(src).unwrap();
-        let expected_tokens: Vec<Token> = vec![
-            Keyword::Fn.into(),
-            Padding::new(" ").into(),
-            Identifier::new("main").into(),
-            Punctuator::LeftParenthesis.into(),
-            Punctuator::RightParenthesis.into(),
-            Padding::new(" ").into(),
-            Punctuator::LeftBrace.into(),
-            Punctuator::RightBrace.into(),
-        ];
-
-        assert_eq!(expected_tokens, actual_tokens);
-    }
-
-    #[test]
-    fn lex_all_empty_string() {
-        let tokens = Token::lex_all("").unwrap();
-        assert!(tokens.is_empty());
-    }
-
-    #[test]
     fn lex_empty() {
         let mut chars = Chars::new("");
 
@@ -175,24 +134,5 @@ mod tests {
         assert!(Token::lex(&mut chars).unwrap().is_none());
 
         assert!(chars.peek().is_none());
-    }
-
-    #[test]
-    fn lex_all_fails() {
-        for (src, expected_position) in [
-            ("`", Position::new(1, 1)),
-            ("fn`", Position::new(1, 3)),
-            ("fn `", Position::new(1, 4)),
-            ("fn main`", Position::new(1, 8)),
-            ("fn main(`", Position::new(1, 9)),
-            ("fn main()`", Position::new(1, 10)),
-            ("fn main()\n`", Position::new(2, 1)),
-            ("fn main()\n{`", Position::new(2, 2)),
-            ("fn main()\n{\n`", Position::new(3, 1)),
-            ("fn main()\n{\n}`", Position::new(3, 2)),
-        ] {
-            let position_error = Token::lex_all(src).unwrap_err();
-            assert_eq!(position_error.position, expected_position);
-        }
     }
 }
