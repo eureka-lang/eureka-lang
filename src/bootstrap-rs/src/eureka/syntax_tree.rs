@@ -1,105 +1,19 @@
 use crate::communication::Error;
 use crate::eureka::lexer::Lexer;
-use crate::eureka::token::{Identifier, Keyword, Padding, Punctuator, Token};
+
+pub use module::Module;
+mod module;
+
+pub use padded_definition::PaddedDefinition;
+mod padded_definition;
+
+pub use definition::Definition;
+mod definition;
+
+pub use function_definition::FunctionDefinition;
+mod function_definition;
 
 mod parse;
-
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-struct Module {
-    pre_definitions_padding: Option<Padding>,
-    definitions: Vec<PaddedDefinition>,
-}
-
-impl Module {
-    fn parse(lexer: &mut Lexer) -> Result<Module, Error> {
-        let pre_definitions_padding = parse::optional(lexer);
-        let definitions = zero_or_more(PaddedDefinition::parse)(lexer)?;
-
-        if let Some(token) = lexer.peek() {
-            return Err(Error::UnexpectedToken(token));
-        }
-
-        Ok(Module {
-            pre_definitions_padding,
-            definitions,
-        })
-    }
-}
-
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-struct PaddedDefinition {
-    definition: Definition,
-    post_definition_padding: Option<Padding>,
-}
-
-impl PaddedDefinition {
-    fn parse(lexer: &mut Lexer) -> Result<Option<PaddedDefinition>, Error> {
-        if let Some(definition) = Definition::parse(lexer)? {
-            let post_definition_padding = parse::optional(lexer);
-
-            Ok(Some(PaddedDefinition {
-                definition,
-                post_definition_padding,
-            }))
-        } else {
-            Ok(None)
-        }
-    }
-}
-
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-enum Definition {
-    Function(FunctionDefinition),
-}
-
-impl Definition {
-    fn parse(lexer: &mut Lexer) -> Result<Option<Definition>, Error> {
-        if let Some(definition) = FunctionDefinition::parse(lexer)? {
-            Ok(Some(Definition::Function(definition)))
-        } else {
-            Ok(None)
-        }
-    }
-}
-
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-struct FunctionDefinition {
-    // Keyword::Fn
-    pre_identifier_padding: Padding,
-    identifier: Identifier,
-    pre_parenthesis_padding: Option<Padding>,
-    // Punctuator::LeftParenthesis
-    // Punctuator::RightParenthesis
-    pre_brace_padding: Option<Padding>,
-    // Punctuator::LeftBrace
-    // Punctuator::RightBrace
-}
-
-impl FunctionDefinition {
-    fn parse(lexer: &mut Lexer) -> Result<Option<FunctionDefinition>, Error> {
-        if lexer.peek() != Some(Token::Keyword(Keyword::Fn)) {
-            return Ok(None);
-        }
-
-        lexer.pop();
-
-        let pre_identifier_padding = parse::required(lexer)?;
-        let identifier = parse::required(lexer)?;
-        let pre_parenthesis_padding = parse::optional(lexer);
-        parse::expected(lexer, Punctuator::LeftParenthesis)?;
-        parse::expected(lexer, Punctuator::RightParenthesis)?;
-        let pre_brace_padding = parse::optional(lexer);
-        parse::expected(lexer, Punctuator::LeftBrace)?;
-        parse::expected(lexer, Punctuator::RightBrace)?;
-
-        Ok(Some(FunctionDefinition {
-            pre_identifier_padding,
-            identifier,
-            pre_parenthesis_padding,
-            pre_brace_padding,
-        }))
-    }
-}
 
 fn zero_or_more<T, F>(f: F) -> impl Fn(&mut Lexer) -> Result<Vec<T>, Error>
 where
@@ -120,33 +34,7 @@ where
 mod tests {
     use super::*;
     use crate::communication::Position;
-
-    #[test]
-    fn test_parse_function_definition_success() {
-        let mut lexer = Lexer::new("fn main() {}");
-        let actual_function_definition = FunctionDefinition::parse(&mut lexer).unwrap().unwrap();
-        let expected_function_definition = FunctionDefinition {
-            pre_identifier_padding: Padding::new(" "),
-            identifier: Identifier::new("main"),
-            pre_parenthesis_padding: None,
-            pre_brace_padding: Some(Padding::new(" ")),
-        };
-        assert_eq!(expected_function_definition, actual_function_definition);
-    }
-
-    #[test]
-    fn test_parse_function_definition_err() {
-        let mut lexer = Lexer::new("fn main( {}");
-        assert_eq!(lexer.position(), Position::new(1, 1));
-        assert!(FunctionDefinition::parse(&mut lexer).is_err());
-        assert_eq!(lexer.position(), Position::new(1, 9));
-    }
-
-    #[test]
-    fn test_parse_function_definition_none() {
-        let mut lexer = Lexer::new("return x");
-        assert_eq!(Ok(None), FunctionDefinition::parse(&mut lexer));
-    }
+    use crate::eureka::token::{Identifier, Padding};
 
     #[test]
     fn test_zero_or_more_parse_function_definition_zero() {
@@ -202,49 +90,5 @@ mod tests {
         assert_eq!(lexer.position(), Position::new(1, 1));
         assert!(zero_or_more(FunctionDefinition::parse)(&mut lexer).is_err());
         assert_eq!(lexer.position(), Position::new(1, 9));
-    }
-
-    #[test]
-    fn test_parse_module_empty() {
-        let mut lexer = Lexer::new("");
-
-        let actual = Module::parse(&mut lexer).unwrap();
-        let expected = Module {
-            pre_definitions_padding: None,
-            definitions: Vec::new(),
-        };
-
-        assert_eq!(expected, actual);
-    }
-
-    #[test]
-    fn test_parse_module_err() {
-        let mut lexer = Lexer::new("fn main() {}return");
-
-        let actual = Module::parse(&mut lexer).unwrap_err();
-        let expected = Error::UnexpectedToken(Keyword::Return.into());
-
-        assert_eq!(expected, actual);
-    }
-
-    #[test]
-    fn test_parse_module_success() {
-        let mut lexer = Lexer::new("fn main() {}");
-
-        let actual = Module::parse(&mut lexer).unwrap();
-        let expected = Module {
-            pre_definitions_padding: None,
-            definitions: vec![PaddedDefinition {
-                definition: Definition::Function(FunctionDefinition {
-                    pre_identifier_padding: Padding::new(" "),
-                    identifier: Identifier::new("main"),
-                    pre_parenthesis_padding: None,
-                    pre_brace_padding: Some(Padding::new(" ")),
-                }),
-                post_definition_padding: None,
-            }],
-        };
-
-        assert_eq!(expected, actual);
     }
 }
