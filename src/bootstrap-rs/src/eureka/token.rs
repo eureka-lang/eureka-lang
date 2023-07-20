@@ -23,17 +23,17 @@ impl Token {
     pub fn lex(chars: &mut Chars) -> Result<Option<Token>, Error> {
         if let Some(token) = Identifier::lex(chars) {
             match token {
-                Ok(identifier) => return Ok(Some(Token::Identifier(identifier))),
-                Err(keyword) => return Ok(Some(Token::Keyword(keyword))),
+                Ok(identifier) => return Ok(Some(Self::Identifier(identifier))),
+                Err(keyword) => return Ok(Some(Self::Keyword(keyword))),
             }
         }
 
         if let Some(padding) = Padding::lex(chars)? {
-            return Ok(Some(Token::Padding(padding)));
+            return Ok(Some(Self::Padding(padding)));
         }
 
         if let Some(punctuator) = Punctuator::lex(chars) {
-            return Ok(Some(Token::Punctuator(punctuator)));
+            return Ok(Some(Self::Punctuator(punctuator)));
         }
 
         match chars.peek() {

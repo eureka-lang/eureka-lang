@@ -14,7 +14,7 @@ mod restricted {
     }
 
     impl Padding {
-        pub fn lex(chars: &mut Chars) -> Result<Option<Self>, Error> {
+        pub fn lex(chars: &mut Chars) -> Result<Option<Padding>, Error> {
             let mut value = String::new();
 
             while super::lex_whitespace(chars, &mut value) || super::lex_comment(chars, &mut value)?
@@ -24,7 +24,7 @@ mod restricted {
             if value.is_empty() {
                 Ok(None)
             } else {
-                Ok(Some(Self { value }))
+                Ok(Some(Padding { value }))
             }
         }
 

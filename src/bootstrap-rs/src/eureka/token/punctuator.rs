@@ -12,7 +12,7 @@ pub enum Punctuator {
 }
 
 impl Punctuator {
-    pub fn lex(chars: &mut Chars) -> Option<Self> {
+    pub fn lex(chars: &mut Chars) -> Option<Punctuator> {
         let punctuator = match chars.peek() {
             Some('(') => Self::LeftParenthesis,
             Some(')') => Self::RightParenthesis,
