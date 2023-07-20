@@ -36,8 +36,8 @@ mod restricted {
             })
         }
 
-        pub fn peek(&self) -> Option<&Token> {
-            self.tokens.last()
+        pub fn peek(&self) -> Option<Token> {
+            self.tokens.last().cloned()
         }
 
         pub fn pop(&mut self) -> Option<Token> {
@@ -84,15 +84,15 @@ mod tests {
         let mut lexer = Lexer::new("fn example");
 
         assert_eq!(lexer.position(), Position::new(1, 1));
-        assert_eq!(lexer.peek(), Some(&Token::from(Keyword::Fn)));
+        assert_eq!(lexer.peek(), Some(Token::from(Keyword::Fn)));
         assert_eq!(lexer.pop(), Some(Token::from(Keyword::Fn)));
 
         assert_eq!(lexer.position(), Position::new(1, 3));
-        assert_eq!(lexer.peek(), Some(&Token::from(Padding::new(" "))));
+        assert_eq!(lexer.peek(), Some(Token::from(Padding::new(" "))));
         assert_eq!(lexer.pop(), Some(Token::from(Padding::new(" "))));
 
         assert_eq!(lexer.position(), Position::new(1, 4));
-        assert_eq!(lexer.peek(), Some(&Token::from(Identifier::new("example"))));
+        assert_eq!(lexer.peek(), Some(Token::from(Identifier::new("example"))));
         assert_eq!(lexer.pop(), Some(Token::from(Identifier::new("example"))));
 
         assert_eq!(lexer.position(), Position::new(1, 11));

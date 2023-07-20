@@ -15,7 +15,7 @@ fn parse_module(lexer: &mut Lexer) -> Result<Module, Error> {
     let definitions = zero_or_more(parse_padded_definition)(lexer)?;
 
     if let Some(token) = lexer.peek() {
-        return Err(Error::UnexpectedToken(token.clone()));
+        return Err(Error::UnexpectedToken(token));
     }
 
     Ok(Module {
@@ -70,7 +70,7 @@ struct FunctionDefinition {
 }
 
 fn parse_function_definition(lexer: &mut Lexer) -> Result<Option<FunctionDefinition>, Error> {
-    if lexer.peek() != Some(&Token::Keyword(Keyword::Fn)) {
+    if lexer.peek() != Some(Token::Keyword(Keyword::Fn)) {
         return Ok(None);
     }
 
