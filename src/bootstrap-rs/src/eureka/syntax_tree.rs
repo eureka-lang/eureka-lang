@@ -10,18 +10,20 @@ struct Module {
     definitions: Vec<PaddedDefinition>,
 }
 
-fn parse_module(lexer: &mut Lexer) -> Result<Module, Error> {
-    let pre_definitions_padding = parse::optional(lexer);
-    let definitions = zero_or_more(parse_padded_definition)(lexer)?;
+impl Module {
+    fn parse(lexer: &mut Lexer) -> Result<Module, Error> {
+        let pre_definitions_padding = parse::optional(lexer);
+        let definitions = zero_or_more(PaddedDefinition::parse)(lexer)?;
 
-    if let Some(token) = lexer.peek() {
-        return Err(Error::UnexpectedToken(token));
+        if let Some(token) = lexer.peek() {
+            return Err(Error::UnexpectedToken(token));
+        }
+
+        Ok(Module {
+            pre_definitions_padding,
+            definitions,
+        })
     }
-
-    Ok(Module {
-        pre_definitions_padding,
-        definitions,
-    })
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -30,16 +32,18 @@ struct PaddedDefinition {
     post_definition_padding: Option<Padding>,
 }
 
-fn parse_padded_definition(lexer: &mut Lexer) -> Result<Option<PaddedDefinition>, Error> {
-    if let Some(definition) = parse_definition(lexer)? {
-        let post_definition_padding = parse::optional(lexer);
+impl PaddedDefinition {
+    fn parse(lexer: &mut Lexer) -> Result<Option<PaddedDefinition>, Error> {
+        if let Some(definition) = Definition::parse(lexer)? {
+            let post_definition_padding = parse::optional(lexer);
 
-        Ok(Some(PaddedDefinition {
-            definition,
-            post_definition_padding,
-        }))
-    } else {
-        Ok(None)
+            Ok(Some(PaddedDefinition {
+                definition,
+                post_definition_padding,
+            }))
+        } else {
+            Ok(None)
+        }
     }
 }
 
@@ -48,11 +52,13 @@ enum Definition {
     Function(FunctionDefinition),
 }
 
-fn parse_definition(lexer: &mut Lexer) -> Result<Option<Definition>, Error> {
-    if let Some(definition) = parse_function_definition(lexer)? {
-        Ok(Some(Definition::Function(definition)))
-    } else {
-        Ok(None)
+impl Definition {
+    fn parse(lexer: &mut Lexer) -> Result<Option<Definition>, Error> {
+        if let Some(definition) = FunctionDefinition::parse(lexer)? {
+            Ok(Some(Definition::Function(definition)))
+        } else {
+            Ok(None)
+        }
     }
 }
 
@@ -69,28 +75,30 @@ struct FunctionDefinition {
     // Punctuator::RightBrace
 }
 
-fn parse_function_definition(lexer: &mut Lexer) -> Result<Option<FunctionDefinition>, Error> {
-    if lexer.peek() != Some(Token::Keyword(Keyword::Fn)) {
-        return Ok(None);
+impl FunctionDefinition {
+    fn parse(lexer: &mut Lexer) -> Result<Option<FunctionDefinition>, Error> {
+        if lexer.peek() != Some(Token::Keyword(Keyword::Fn)) {
+            return Ok(None);
+        }
+
+        lexer.pop();
+
+        let pre_identifier_padding = parse::required(lexer)?;
+        let identifier = parse::required(lexer)?;
+        let pre_parenthesis_padding = parse::optional(lexer);
+        parse::expected(lexer, Punctuator::LeftParenthesis)?;
+        parse::expected(lexer, Punctuator::RightParenthesis)?;
+        let pre_brace_padding = parse::optional(lexer);
+        parse::expected(lexer, Punctuator::LeftBrace)?;
+        parse::expected(lexer, Punctuator::RightBrace)?;
+
+        Ok(Some(FunctionDefinition {
+            pre_identifier_padding,
+            identifier,
+            pre_parenthesis_padding,
+            pre_brace_padding,
+        }))
     }
-
-    lexer.pop();
-
-    let pre_identifier_padding = parse::required(lexer)?;
-    let identifier = parse::required(lexer)?;
-    let pre_parenthesis_padding = parse::optional(lexer);
-    parse::expected(lexer, Punctuator::LeftParenthesis)?;
-    parse::expected(lexer, Punctuator::RightParenthesis)?;
-    let pre_brace_padding = parse::optional(lexer);
-    parse::expected(lexer, Punctuator::LeftBrace)?;
-    parse::expected(lexer, Punctuator::RightBrace)?;
-
-    Ok(Some(FunctionDefinition {
-        pre_identifier_padding,
-        identifier,
-        pre_parenthesis_padding,
-        pre_brace_padding,
-    }))
 }
 
 fn zero_or_more<T, F>(f: F) -> impl Fn(&mut Lexer) -> Result<Vec<T>, Error>
@@ -116,7 +124,7 @@ mod tests {
     #[test]
     fn test_parse_function_definition_success() {
         let mut lexer = Lexer::new("fn main() {}");
-        let actual_function_definition = parse_function_definition(&mut lexer).unwrap().unwrap();
+        let actual_function_definition = FunctionDefinition::parse(&mut lexer).unwrap().unwrap();
         let expected_function_definition = FunctionDefinition {
             pre_identifier_padding: Padding::new(" "),
             identifier: Identifier::new("main"),
@@ -130,21 +138,21 @@ mod tests {
     fn test_parse_function_definition_err() {
         let mut lexer = Lexer::new("fn main( {}");
         assert_eq!(lexer.position(), Position::new(1, 1));
-        assert!(parse_function_definition(&mut lexer).is_err());
+        assert!(FunctionDefinition::parse(&mut lexer).is_err());
         assert_eq!(lexer.position(), Position::new(1, 9));
     }
 
     #[test]
     fn test_parse_function_definition_none() {
         let mut lexer = Lexer::new("return x");
-        assert_eq!(Ok(None), parse_function_definition(&mut lexer));
+        assert_eq!(Ok(None), FunctionDefinition::parse(&mut lexer));
     }
 
     #[test]
     fn test_zero_or_more_parse_function_definition_zero() {
         let mut lexer = Lexer::new("");
 
-        let actual = zero_or_more(parse_function_definition)(&mut lexer);
+        let actual = zero_or_more(FunctionDefinition::parse)(&mut lexer);
         let expected: Vec<FunctionDefinition> = Vec::new();
 
         assert_eq!(expected, actual.unwrap());
@@ -154,7 +162,7 @@ mod tests {
     fn test_zero_or_more_parse_function_definition_one() {
         let mut lexer = Lexer::new("fn main() {}");
 
-        let actual = zero_or_more(parse_function_definition)(&mut lexer);
+        let actual = zero_or_more(FunctionDefinition::parse)(&mut lexer);
         let expected: Vec<FunctionDefinition> = vec![FunctionDefinition {
             pre_identifier_padding: Padding::new(" "),
             identifier: Identifier::new("main"),
@@ -169,7 +177,7 @@ mod tests {
     fn test_zero_or_more_parse_function_definition_two() {
         let mut lexer = Lexer::new("fn a(){}fn b(){}");
 
-        let actual = zero_or_more(parse_function_definition)(&mut lexer);
+        let actual = zero_or_more(FunctionDefinition::parse)(&mut lexer);
         let expected: Vec<FunctionDefinition> = vec![
             FunctionDefinition {
                 pre_identifier_padding: Padding::new(" "),
@@ -192,7 +200,7 @@ mod tests {
     fn test_zero_or_more_parse_function_definition_err() {
         let mut lexer = Lexer::new("fn main( {}");
         assert_eq!(lexer.position(), Position::new(1, 1));
-        assert!(zero_or_more(parse_function_definition)(&mut lexer).is_err());
+        assert!(zero_or_more(FunctionDefinition::parse)(&mut lexer).is_err());
         assert_eq!(lexer.position(), Position::new(1, 9));
     }
 
@@ -200,7 +208,7 @@ mod tests {
     fn test_parse_module_empty() {
         let mut lexer = Lexer::new("");
 
-        let actual = parse_module(&mut lexer).unwrap();
+        let actual = Module::parse(&mut lexer).unwrap();
         let expected = Module {
             pre_definitions_padding: None,
             definitions: Vec::new(),
@@ -213,7 +221,7 @@ mod tests {
     fn test_parse_module_err() {
         let mut lexer = Lexer::new("fn main() {}return");
 
-        let actual = parse_module(&mut lexer).unwrap_err();
+        let actual = Module::parse(&mut lexer).unwrap_err();
         let expected = Error::UnexpectedToken(Keyword::Return.into());
 
         assert_eq!(expected, actual);
@@ -223,7 +231,7 @@ mod tests {
     fn test_parse_module_success() {
         let mut lexer = Lexer::new("fn main() {}");
 
-        let actual = parse_module(&mut lexer).unwrap();
+        let actual = Module::parse(&mut lexer).unwrap();
         let expected = Module {
             pre_definitions_padding: None,
             definitions: vec![PaddedDefinition {
