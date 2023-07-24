@@ -15,16 +15,12 @@ mod restricted {
         pub fn try_new(src: &str) -> Result<Lexer, PositionError> {
             let mut chars = Chars::try_new(src)?;
             let mut tokens = Vec::new();
-            let mut position = Position::start();
 
             loop {
                 match Token::lex(&mut chars) {
-                    Ok(Some(token)) => {
-                        position.advance_str(token.unlex());
-                        tokens.push(token);
-                    }
+                    Ok(Some(token)) => tokens.push(token),
                     Ok(None) => break,
-                    Err(e) => return Err(PositionError::new(position, e)),
+                    Err(e) => return Err(PositionError::new(chars.position(), e)),
                 }
             }
 
