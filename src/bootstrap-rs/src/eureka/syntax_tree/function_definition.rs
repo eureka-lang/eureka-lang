@@ -1,5 +1,4 @@
 use crate::communication::Error;
-use crate::eureka::syntax_tree::parse;
 use crate::eureka::token::{Identifier, Keyword, Padding, Punctuator, Token};
 use crate::eureka::tokens::Tokens;
 
@@ -24,14 +23,14 @@ impl FunctionDefinition {
 
         tokens.pop();
 
-        let pre_identifier_padding = parse::required(tokens)?;
-        let identifier = parse::required(tokens)?;
-        let pre_parenthesis_padding = parse::optional(tokens);
-        parse::expected(tokens, Punctuator::LeftParenthesis)?;
-        parse::expected(tokens, Punctuator::RightParenthesis)?;
-        let pre_brace_padding = parse::optional(tokens);
-        parse::expected(tokens, Punctuator::LeftBrace)?;
-        parse::expected(tokens, Punctuator::RightBrace)?;
+        let pre_identifier_padding = tokens.required()?;
+        let identifier = tokens.required()?;
+        let pre_parenthesis_padding = tokens.optional();
+        tokens.expected(Punctuator::LeftParenthesis)?;
+        tokens.expected(Punctuator::RightParenthesis)?;
+        let pre_brace_padding = tokens.optional();
+        tokens.expected(Punctuator::LeftBrace)?;
+        tokens.expected(Punctuator::RightBrace)?;
 
         Ok(Some(FunctionDefinition {
             pre_identifier_padding,

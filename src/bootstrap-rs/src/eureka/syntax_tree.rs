@@ -13,8 +13,6 @@ mod definition;
 pub use function_definition::FunctionDefinition;
 mod function_definition;
 
-mod parse;
-
 fn zero_or_more<T, F>(f: F) -> impl Fn(&mut Tokens) -> Result<Vec<T>, Error>
 where
     F: Fn(&mut Tokens) -> Result<Option<T>, Error>,

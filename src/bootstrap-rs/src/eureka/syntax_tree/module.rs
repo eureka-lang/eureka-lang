@@ -1,5 +1,5 @@
 use crate::communication::Error;
-use crate::eureka::syntax_tree::{parse, zero_or_more, PaddedDefinition};
+use crate::eureka::syntax_tree::{zero_or_more, PaddedDefinition};
 use crate::eureka::token::Padding;
 use crate::eureka::tokens::Tokens;
 
@@ -11,7 +11,7 @@ pub struct Module {
 
 impl Module {
     pub fn parse(tokens: &mut Tokens) -> Result<Module, Error> {
-        let pre_definitions_padding = parse::optional(tokens);
+        let pre_definitions_padding = tokens.optional();
         let definitions = zero_or_more(PaddedDefinition::parse)(tokens)?;
 
         if let Some(token) = tokens.peek() {
