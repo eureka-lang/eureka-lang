@@ -1,4 +1,4 @@
-pub use restricted::Lexer;
+pub use restricted::Tokens;
 
 mod restricted {
     use crate::communication::{Position, PositionError};
@@ -6,38 +6,38 @@ mod restricted {
     use crate::eureka::token::Token;
 
     #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-    pub struct Lexer {
-        tokens: Vec<Token>,
+    pub struct Tokens {
+        values: Vec<Token>,
         position: Position,
     }
 
-    impl Lexer {
-        pub fn try_new(src: &str) -> Result<Lexer, PositionError> {
+    impl Tokens {
+        pub fn try_new(src: &str) -> Result<Tokens, PositionError> {
             let mut chars = Chars::try_new(src)?;
-            let mut tokens = Vec::new();
+            let mut values = Vec::new();
 
             loop {
                 match Token::lex(&mut chars) {
-                    Ok(Some(token)) => tokens.push(token),
+                    Ok(Some(token)) => values.push(token),
                     Ok(None) => break,
                     Err(e) => return Err(PositionError::new(chars.position(), e)),
                 }
             }
 
-            tokens.reverse();
+            values.reverse();
 
-            Ok(Lexer {
-                tokens,
+            Ok(Tokens {
+                values,
                 position: Position::start(),
             })
         }
 
         pub fn peek(&self) -> Option<Token> {
-            self.tokens.last().cloned()
+            self.values.last().cloned()
         }
 
         pub fn pop(&mut self) -> Option<Token> {
-            match self.tokens.pop() {
+            match self.values.pop() {
                 None => None,
                 Some(token) => {
                     self.position.advance_str(token.unlex());
@@ -52,9 +52,9 @@ mod restricted {
     }
 }
 
-impl Lexer {
-    pub fn new(src: &str) -> Lexer {
-        Lexer::try_new(src).unwrap()
+impl Tokens {
+    pub fn new(src: &str) -> Tokens {
+        Tokens::try_new(src).unwrap()
     }
 }
 
@@ -66,38 +66,38 @@ mod tests {
 
     #[test]
     fn empty() {
-        let mut lexer = Lexer::new("");
+        let mut tokens = Tokens::new("");
 
-        assert_eq!(lexer, Lexer::try_new("").unwrap());
+        assert_eq!(tokens, Tokens::try_new("").unwrap());
 
-        assert_eq!(lexer.peek(), None);
-        assert_eq!(lexer.pop(), None);
-        assert_eq!(lexer.position(), Position::start());
+        assert_eq!(tokens.peek(), None);
+        assert_eq!(tokens.pop(), None);
+        assert_eq!(tokens.position(), Position::start());
     }
 
     #[test]
     fn non_empty() {
-        let mut lexer = Lexer::new("fn example");
+        let mut tokens = Tokens::new("fn example");
 
-        assert_eq!(lexer.position(), Position::new(1, 1));
-        assert_eq!(lexer.peek(), Some(Token::from(Keyword::Fn)));
-        assert_eq!(lexer.pop(), Some(Token::from(Keyword::Fn)));
+        assert_eq!(tokens.position(), Position::new(1, 1));
+        assert_eq!(tokens.peek(), Some(Token::from(Keyword::Fn)));
+        assert_eq!(tokens.pop(), Some(Token::from(Keyword::Fn)));
 
-        assert_eq!(lexer.position(), Position::new(1, 3));
-        assert_eq!(lexer.peek(), Some(Token::from(Padding::new(" "))));
-        assert_eq!(lexer.pop(), Some(Token::from(Padding::new(" "))));
+        assert_eq!(tokens.position(), Position::new(1, 3));
+        assert_eq!(tokens.peek(), Some(Token::from(Padding::new(" "))));
+        assert_eq!(tokens.pop(), Some(Token::from(Padding::new(" "))));
 
-        assert_eq!(lexer.position(), Position::new(1, 4));
-        assert_eq!(lexer.peek(), Some(Token::from(Identifier::new("example"))));
-        assert_eq!(lexer.pop(), Some(Token::from(Identifier::new("example"))));
+        assert_eq!(tokens.position(), Position::new(1, 4));
+        assert_eq!(tokens.peek(), Some(Token::from(Identifier::new("example"))));
+        assert_eq!(tokens.pop(), Some(Token::from(Identifier::new("example"))));
 
-        assert_eq!(lexer.position(), Position::new(1, 11));
-        assert_eq!(lexer.peek(), None);
-        assert_eq!(lexer.pop(), None);
+        assert_eq!(tokens.position(), Position::new(1, 11));
+        assert_eq!(tokens.peek(), None);
+        assert_eq!(tokens.pop(), None);
 
-        assert_eq!(lexer.position(), Position::new(1, 11));
-        assert_eq!(lexer.peek(), None);
-        assert_eq!(lexer.pop(), None);
+        assert_eq!(tokens.position(), Position::new(1, 11));
+        assert_eq!(tokens.peek(), None);
+        assert_eq!(tokens.pop(), None);
     }
 
     #[test]
@@ -114,7 +114,7 @@ mod tests {
             ("fn main()\n{\n`", Position::new(3, 1)),
             ("fn main()\n{\n}`", Position::new(3, 2)),
         ] {
-            let position_error = Lexer::try_new(src).unwrap_err();
+            let position_error = Tokens::try_new(src).unwrap_err();
             assert_eq!(position_error.position, expected_position);
         }
     }

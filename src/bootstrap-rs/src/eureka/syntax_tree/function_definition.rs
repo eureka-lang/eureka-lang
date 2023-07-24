@@ -1,7 +1,7 @@
 use crate::communication::Error;
-use crate::eureka::lexer::Lexer;
 use crate::eureka::syntax_tree::parse;
 use crate::eureka::token::{Identifier, Keyword, Padding, Punctuator, Token};
+use crate::eureka::tokens::Tokens;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct FunctionDefinition {
@@ -17,21 +17,21 @@ pub struct FunctionDefinition {
 }
 
 impl FunctionDefinition {
-    pub fn parse(lexer: &mut Lexer) -> Result<Option<FunctionDefinition>, Error> {
-        if lexer.peek() != Some(Token::Keyword(Keyword::Fn)) {
+    pub fn parse(tokens: &mut Tokens) -> Result<Option<FunctionDefinition>, Error> {
+        if tokens.peek() != Some(Token::Keyword(Keyword::Fn)) {
             return Ok(None);
         }
 
-        lexer.pop();
+        tokens.pop();
 
-        let pre_identifier_padding = parse::required(lexer)?;
-        let identifier = parse::required(lexer)?;
-        let pre_parenthesis_padding = parse::optional(lexer);
-        parse::expected(lexer, Punctuator::LeftParenthesis)?;
-        parse::expected(lexer, Punctuator::RightParenthesis)?;
-        let pre_brace_padding = parse::optional(lexer);
-        parse::expected(lexer, Punctuator::LeftBrace)?;
-        parse::expected(lexer, Punctuator::RightBrace)?;
+        let pre_identifier_padding = parse::required(tokens)?;
+        let identifier = parse::required(tokens)?;
+        let pre_parenthesis_padding = parse::optional(tokens);
+        parse::expected(tokens, Punctuator::LeftParenthesis)?;
+        parse::expected(tokens, Punctuator::RightParenthesis)?;
+        let pre_brace_padding = parse::optional(tokens);
+        parse::expected(tokens, Punctuator::LeftBrace)?;
+        parse::expected(tokens, Punctuator::RightBrace)?;
 
         Ok(Some(FunctionDefinition {
             pre_identifier_padding,
@@ -49,8 +49,8 @@ mod tests {
 
     #[test]
     fn parse_success() {
-        let mut lexer = Lexer::new("fn main() {}");
-        let actual_function_definition = FunctionDefinition::parse(&mut lexer).unwrap().unwrap();
+        let mut tokens = Tokens::new("fn main() {}");
+        let actual_function_definition = FunctionDefinition::parse(&mut tokens).unwrap().unwrap();
         let expected_function_definition = FunctionDefinition {
             pre_identifier_padding: Padding::new(" "),
             identifier: Identifier::new("main"),
@@ -62,15 +62,15 @@ mod tests {
 
     #[test]
     fn parse_none() {
-        let mut lexer = Lexer::new("return x");
-        assert_eq!(Ok(None), FunctionDefinition::parse(&mut lexer));
+        let mut tokens = Tokens::new("return x");
+        assert_eq!(Ok(None), FunctionDefinition::parse(&mut tokens));
     }
 
     #[test]
     fn parse_err() {
-        let mut lexer = Lexer::new("fn main( {}");
-        assert_eq!(lexer.position(), Position::new(1, 1));
-        assert!(FunctionDefinition::parse(&mut lexer).is_err());
-        assert_eq!(lexer.position(), Position::new(1, 9));
+        let mut tokens = Tokens::new("fn main( {}");
+        assert_eq!(tokens.position(), Position::new(1, 1));
+        assert!(FunctionDefinition::parse(&mut tokens).is_err());
+        assert_eq!(tokens.position(), Position::new(1, 9));
     }
 }

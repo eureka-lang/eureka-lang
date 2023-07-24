@@ -1,6 +1,6 @@
 use crate::communication::Error;
-use crate::eureka::lexer::Lexer;
 use crate::eureka::syntax_tree::FunctionDefinition;
+use crate::eureka::tokens::Tokens;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Definition {
@@ -8,8 +8,8 @@ pub enum Definition {
 }
 
 impl Definition {
-    pub fn parse(lexer: &mut Lexer) -> Result<Option<Definition>, Error> {
-        if let Some(definition) = FunctionDefinition::parse(lexer)? {
+    pub fn parse(tokens: &mut Tokens) -> Result<Option<Definition>, Error> {
+        if let Some(definition) = FunctionDefinition::parse(tokens)? {
             Ok(Some(Definition::Function(definition)))
         } else {
             Ok(None)

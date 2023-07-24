@@ -1,7 +1,7 @@
 use crate::communication::Error;
-use crate::eureka::lexer::Lexer;
 use crate::eureka::syntax_tree::{parse, Definition};
 use crate::eureka::token::Padding;
+use crate::eureka::tokens::Tokens;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct PaddedDefinition {
@@ -10,9 +10,9 @@ pub struct PaddedDefinition {
 }
 
 impl PaddedDefinition {
-    pub fn parse(lexer: &mut Lexer) -> Result<Option<PaddedDefinition>, Error> {
-        if let Some(definition) = Definition::parse(lexer)? {
-            let post_definition_padding = parse::optional(lexer);
+    pub fn parse(tokens: &mut Tokens) -> Result<Option<PaddedDefinition>, Error> {
+        if let Some(definition) = Definition::parse(tokens)? {
+            let post_definition_padding = parse::optional(tokens);
 
             Ok(Some(PaddedDefinition {
                 definition,

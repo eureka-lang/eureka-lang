@@ -1,7 +1,7 @@
 use crate::communication::Error;
-use crate::eureka::lexer::Lexer;
 use crate::eureka::syntax_tree::{parse, zero_or_more, PaddedDefinition};
 use crate::eureka::token::Padding;
+use crate::eureka::tokens::Tokens;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Module {
@@ -10,11 +10,11 @@ pub struct Module {
 }
 
 impl Module {
-    pub fn parse(lexer: &mut Lexer) -> Result<Module, Error> {
-        let pre_definitions_padding = parse::optional(lexer);
-        let definitions = zero_or_more(PaddedDefinition::parse)(lexer)?;
+    pub fn parse(tokens: &mut Tokens) -> Result<Module, Error> {
+        let pre_definitions_padding = parse::optional(tokens);
+        let definitions = zero_or_more(PaddedDefinition::parse)(tokens)?;
 
-        if let Some(token) = lexer.peek() {
+        if let Some(token) = tokens.peek() {
             return Err(Error::UnexpectedToken(token));
         }
 
@@ -33,9 +33,9 @@ mod tests {
 
     #[test]
     fn parse_empty() {
-        let mut lexer = Lexer::new("");
+        let mut tokens = Tokens::new("");
 
-        let actual = Module::parse(&mut lexer).unwrap();
+        let actual = Module::parse(&mut tokens).unwrap();
         let expected = Module {
             pre_definitions_padding: None,
             definitions: Vec::new(),
@@ -46,9 +46,9 @@ mod tests {
 
     #[test]
     fn parse_success() {
-        let mut lexer = Lexer::new("fn main() {}");
+        let mut tokens = Tokens::new("fn main() {}");
 
-        let actual = Module::parse(&mut lexer).unwrap();
+        let actual = Module::parse(&mut tokens).unwrap();
         let expected = Module {
             pre_definitions_padding: None,
             definitions: vec![PaddedDefinition {
@@ -67,9 +67,9 @@ mod tests {
 
     #[test]
     fn parse_err() {
-        let mut lexer = Lexer::new("fn main() {}return");
+        let mut tokens = Tokens::new("fn main() {}return");
 
-        let actual = Module::parse(&mut lexer).unwrap_err();
+        let actual = Module::parse(&mut tokens).unwrap_err();
         let expected = Error::UnexpectedToken(Keyword::Return.into());
 
         assert_eq!(expected, actual);

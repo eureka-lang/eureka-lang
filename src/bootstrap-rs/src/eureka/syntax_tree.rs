@@ -1,5 +1,5 @@
 use crate::communication::Error;
-use crate::eureka::lexer::Lexer;
+use crate::eureka::tokens::Tokens;
 
 pub use module::Module;
 mod module;
@@ -15,14 +15,14 @@ mod function_definition;
 
 mod parse;
 
-fn zero_or_more<T, F>(f: F) -> impl Fn(&mut Lexer) -> Result<Vec<T>, Error>
+fn zero_or_more<T, F>(f: F) -> impl Fn(&mut Tokens) -> Result<Vec<T>, Error>
 where
-    F: Fn(&mut Lexer) -> Result<Option<T>, Error>,
+    F: Fn(&mut Tokens) -> Result<Option<T>, Error>,
 {
-    move |lexer: &mut Lexer| {
+    move |tokens: &mut Tokens| {
         let mut result = Vec::new();
 
-        while let Some(t) = f(lexer)? {
+        while let Some(t) = f(tokens)? {
             result.push(t);
         }
 
@@ -38,9 +38,9 @@ mod tests {
 
     #[test]
     fn test_zero_or_more_parse_function_definition_zero() {
-        let mut lexer = Lexer::new("");
+        let mut tokens = Tokens::new("");
 
-        let actual = zero_or_more(FunctionDefinition::parse)(&mut lexer);
+        let actual = zero_or_more(FunctionDefinition::parse)(&mut tokens);
         let expected: Vec<FunctionDefinition> = Vec::new();
 
         assert_eq!(expected, actual.unwrap());
@@ -48,9 +48,9 @@ mod tests {
 
     #[test]
     fn test_zero_or_more_parse_function_definition_one() {
-        let mut lexer = Lexer::new("fn main() {}");
+        let mut tokens = Tokens::new("fn main() {}");
 
-        let actual = zero_or_more(FunctionDefinition::parse)(&mut lexer);
+        let actual = zero_or_more(FunctionDefinition::parse)(&mut tokens);
         let expected: Vec<FunctionDefinition> = vec![FunctionDefinition {
             pre_identifier_padding: Padding::new(" "),
             identifier: Identifier::new("main"),
@@ -63,9 +63,9 @@ mod tests {
 
     #[test]
     fn test_zero_or_more_parse_function_definition_two() {
-        let mut lexer = Lexer::new("fn a(){}fn b(){}");
+        let mut tokens = Tokens::new("fn a(){}fn b(){}");
 
-        let actual = zero_or_more(FunctionDefinition::parse)(&mut lexer);
+        let actual = zero_or_more(FunctionDefinition::parse)(&mut tokens);
         let expected: Vec<FunctionDefinition> = vec![
             FunctionDefinition {
                 pre_identifier_padding: Padding::new(" "),
@@ -86,9 +86,9 @@ mod tests {
 
     #[test]
     fn test_zero_or_more_parse_function_definition_err() {
-        let mut lexer = Lexer::new("fn main( {}");
-        assert_eq!(lexer.position(), Position::new(1, 1));
-        assert!(zero_or_more(FunctionDefinition::parse)(&mut lexer).is_err());
-        assert_eq!(lexer.position(), Position::new(1, 9));
+        let mut tokens = Tokens::new("fn main( {}");
+        assert_eq!(tokens.position(), Position::new(1, 1));
+        assert!(zero_or_more(FunctionDefinition::parse)(&mut tokens).is_err());
+        assert_eq!(tokens.position(), Position::new(1, 9));
     }
 }
