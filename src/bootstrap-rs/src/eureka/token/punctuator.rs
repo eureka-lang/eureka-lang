@@ -1,5 +1,4 @@
 use crate::eureka::chars::Chars;
-use std::fmt;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Punctuator {
@@ -31,12 +30,6 @@ impl Punctuator {
             Self::LeftBrace => "{",
             Self::RightBrace => "}",
         }
-    }
-}
-
-impl fmt::Display for Punctuator {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "\"{}\"", self.unlex())
     }
 }
 

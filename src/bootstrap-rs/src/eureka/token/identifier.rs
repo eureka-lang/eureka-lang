@@ -2,7 +2,6 @@ use crate::communication::{Error, INVALID_VALUE};
 use crate::eureka::chars::Chars;
 use crate::eureka::token::Token;
 pub use restricted::Identifier;
-use std::fmt;
 
 mod restricted {
     use crate::eureka::chars::Chars;
@@ -50,12 +49,6 @@ impl Identifier {
         }
 
         panic!("{INVALID_VALUE}");
-    }
-}
-
-impl fmt::Display for Identifier {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "\"{}\"", self.unlex())
     }
 }
 

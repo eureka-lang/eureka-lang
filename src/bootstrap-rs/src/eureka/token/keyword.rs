@@ -1,5 +1,3 @@
-use std::fmt;
-
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Keyword {
     Fn,
@@ -28,12 +26,6 @@ impl Keyword {
             .unwrap();
 
         Keyword::MAP[index].0
-    }
-}
-
-impl fmt::Display for Keyword {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "\"{}\"", self.unlex())
     }
 }
 

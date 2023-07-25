@@ -2,7 +2,6 @@ use crate::communication::{Error, INVALID_VALUE};
 use crate::eureka::chars::Chars;
 use crate::eureka::token::Token;
 pub use restricted::Padding;
-use std::fmt;
 
 mod restricted {
     use crate::communication::Error;
@@ -74,12 +73,6 @@ impl Padding {
         }
 
         panic!("{INVALID_VALUE}");
-    }
-}
-
-impl fmt::Display for Padding {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        todo!();
     }
 }
 

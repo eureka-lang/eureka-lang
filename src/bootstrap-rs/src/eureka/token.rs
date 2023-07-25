@@ -4,7 +4,6 @@ pub use identifier::Identifier;
 pub use keyword::Keyword;
 pub use padding::Padding;
 pub use punctuator::Punctuator;
-use std::fmt;
 
 mod identifier;
 mod keyword;
@@ -48,17 +47,6 @@ impl Token {
             Self::Keyword(keyword) => keyword.unlex(),
             Self::Padding(padding) => padding.unlex(),
             Self::Punctuator(punctuator) => punctuator.unlex(),
-        }
-    }
-}
-
-impl fmt::Display for Token {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Identifier(identifier) => fmt::Display::fmt(identifier, f),
-            Self::Keyword(keyword) => fmt::Display::fmt(keyword, f),
-            Self::Padding(padding) => fmt::Display::fmt(padding, f),
-            Self::Punctuator(punctuator) => fmt::Display::fmt(punctuator, f),
         }
     }
 }
