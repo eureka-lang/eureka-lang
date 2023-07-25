@@ -1,4 +1,4 @@
-use crate::communication::{DisplayName, INVALID_VALUE};
+use crate::communication::{Error, INVALID_VALUE};
 use crate::eureka::chars::Chars;
 use crate::eureka::token::Token;
 pub use restricted::Identifier;
@@ -59,19 +59,13 @@ impl fmt::Display for Identifier {
     }
 }
 
-impl DisplayName for Identifier {
-    fn display_name() -> &'static str {
-        "identifier"
-    }
-}
+impl TryFrom<Option<Token>> for Identifier {
+    type Error = Error;
 
-impl TryFrom<Token> for Identifier {
-    type Error = ();
-
-    fn try_from(value: Token) -> Result<Self, Self::Error> {
+    fn try_from(value: Option<Token>) -> Result<Self, Self::Error> {
         match value {
-            Token::Identifier(identifier) => Ok(identifier),
-            _ => Err(()),
+            Some(Token::Identifier(identifier)) => Ok(identifier),
+            _ => Err(Error::Expected("identifier")),
         }
     }
 }

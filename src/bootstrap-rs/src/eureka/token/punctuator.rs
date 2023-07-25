@@ -1,6 +1,4 @@
-use crate::communication::DisplayName;
 use crate::eureka::chars::Chars;
-use crate::eureka::token::Token;
 use std::fmt;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -39,23 +37,6 @@ impl Punctuator {
 impl fmt::Display for Punctuator {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "\"{}\"", self.unlex())
-    }
-}
-
-impl DisplayName for Punctuator {
-    fn display_name() -> &'static str {
-        "punctuator"
-    }
-}
-
-impl TryFrom<Token> for Punctuator {
-    type Error = ();
-
-    fn try_from(value: Token) -> Result<Self, Self::Error> {
-        match value {
-            Token::Punctuator(punctuator) => Ok(punctuator),
-            _ => Err(()),
-        }
     }
 }
 

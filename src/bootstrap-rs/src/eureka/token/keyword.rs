@@ -1,5 +1,3 @@
-use crate::communication::DisplayName;
-use crate::eureka::token::Token;
 use std::fmt;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -36,23 +34,6 @@ impl Keyword {
 impl fmt::Display for Keyword {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "\"{}\"", self.unlex())
-    }
-}
-
-impl DisplayName for Keyword {
-    fn display_name() -> &'static str {
-        "keyword"
-    }
-}
-
-impl TryFrom<Token> for Keyword {
-    type Error = ();
-
-    fn try_from(value: Token) -> Result<Self, Self::Error> {
-        match value {
-            Token::Keyword(keyword) => Ok(keyword),
-            _ => Err(()),
-        }
     }
 }
 

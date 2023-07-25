@@ -1,4 +1,4 @@
-use crate::communication::{DisplayName, Error};
+use crate::communication::Error;
 use crate::eureka::token::Token;
 pub use restricted::Tokens;
 
@@ -59,36 +59,31 @@ impl Tokens {
         Tokens::try_new(src).unwrap()
     }
 
-    pub fn optional<T: TryFrom<Token>>(&mut self) -> Option<T> {
-        if let Some(token) = self.peek() {
-            if let Ok(t) = T::try_from(token) {
+    pub fn optional<T: TryFrom<Option<Token>, Error = Error>>(&mut self) -> Option<T> {
+        self.required().ok()
+    }
+
+    pub fn required<T: TryFrom<Option<Token>, Error = Error>>(&mut self) -> Result<T, Error> {
+        let result = T::try_from(self.peek());
+
+        if result.is_ok() {
+            self.pop();
+        }
+
+        result
+    }
+
+    pub fn expected<T: Into<Token>>(&mut self, token: T) -> Result<(), Error> {
+        let expected_token: Token = token.into();
+
+        if let Some(actual_token) = self.peek() {
+            if actual_token == expected_token {
                 self.pop();
-                return Some(t);
+                return Ok(());
             }
         }
 
-        None
-    }
-
-    pub fn required<T: DisplayName + TryFrom<Token>>(&mut self) -> Result<T, Error> {
-        self.optional()
-            .ok_or_else(|| Error::Missing(T::display_name()))
-    }
-
-    pub fn expected<T>(&mut self, expected_token: T) -> Result<(), Error>
-    where
-        T: Eq + PartialEq + Into<Token> + TryFrom<Token>,
-    {
-        if let Some(token) = self.peek() {
-            if let Ok(actual_token) = T::try_from(token) {
-                if expected_token == actual_token {
-                    self.pop();
-                    return Ok(());
-                }
-            }
-        }
-
-        Err(Error::MissingToken(expected_token.into()))
+        Err(Error::MissingToken(expected_token))
     }
 }
 
@@ -183,7 +178,7 @@ mod tests {
 
         let padding2 = tokens.required::<Padding>();
 
-        assert_eq!(padding2, Err(Error::Missing("padding")));
+        assert_eq!(padding2, Err(Error::Expected("padding")));
         assert_eq!(tokens.peek(), Some(Token::Keyword(Keyword::Fn)));
     }
 

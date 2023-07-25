@@ -5,10 +5,6 @@ mod position;
 
 pub const INVALID_VALUE: &str = "invalid value";
 
-pub trait DisplayName {
-    fn display_name() -> &'static str;
-}
-
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct PositionError {
     pub position: Position,
@@ -23,7 +19,7 @@ impl PositionError {
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Error {
-    Missing(&'static str),
+    Expected(&'static str),
     MissingToken(Token),
     UnexpectedChar(char),
     UnexpectedCharOrEndOfFile(Option<char>),

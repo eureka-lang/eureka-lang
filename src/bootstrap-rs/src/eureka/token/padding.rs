@@ -1,4 +1,4 @@
-use crate::communication::{DisplayName, Error, INVALID_VALUE};
+use crate::communication::{Error, INVALID_VALUE};
 use crate::eureka::chars::Chars;
 use crate::eureka::token::Token;
 pub use restricted::Padding;
@@ -83,19 +83,13 @@ impl fmt::Display for Padding {
     }
 }
 
-impl DisplayName for Padding {
-    fn display_name() -> &'static str {
-        "padding"
-    }
-}
+impl TryFrom<Option<Token>> for Padding {
+    type Error = Error;
 
-impl TryFrom<Token> for Padding {
-    type Error = ();
-
-    fn try_from(value: Token) -> Result<Self, Self::Error> {
+    fn try_from(value: Option<Token>) -> Result<Self, Self::Error> {
         match value {
-            Token::Padding(padding) => Ok(padding),
-            _ => Err(()),
+            Some(Token::Padding(padding)) => Ok(padding),
+            _ => Err(Error::Expected("padding")),
         }
     }
 }
