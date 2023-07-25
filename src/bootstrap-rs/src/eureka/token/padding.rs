@@ -41,15 +41,12 @@ fn lex_comment(chars: &mut Chars, buffer: &mut String) -> Result<bool, Error> {
             buffer.push(chars.pop().unwrap());
         }
 
-        if let Some('\n') = chars.peek() {
-            buffer.push(chars.pop().unwrap());
-            return Ok(true);
-        } else {
-            return Err(Error::UnexpectedCharOrEndOfFile(chars.peek()));
-        }
-    }
+        chars.take(|c| c == '\n', buffer)?;
 
-    Ok(false)
+        Ok(true)
+    } else {
+        Ok(false)
+    }
 }
 
 fn lex_whitespace(chars: &mut Chars, buffer: &mut String) -> bool {

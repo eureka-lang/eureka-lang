@@ -1,3 +1,4 @@
+use crate::communication::Error;
 pub use restricted::Chars;
 
 mod restricted {
@@ -55,12 +56,27 @@ impl Chars {
     pub fn new(src: &str) -> Chars {
         Chars::try_new(src).unwrap()
     }
+
+    pub fn take(
+        &mut self,
+        predicate: impl Fn(char) -> bool,
+        buffer: &mut String,
+    ) -> Result<(), Error> {
+        if let Some(c) = self.peek() {
+            if predicate(c) {
+                buffer.push(self.pop().unwrap());
+                return Ok(());
+            }
+        }
+
+        Err(Error::UnexpectedCharOrEndOfFile(self.peek()))
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::communication::{Error, Position, PositionError};
+    use crate::communication::{Position, PositionError};
 
     #[test]
     fn empty() {
