@@ -59,11 +59,11 @@ impl Tokens {
         Tokens::try_new(src).unwrap()
     }
 
-    pub fn optional<T: TryFrom<Option<Token>, Error = Error>>(&mut self) -> Option<T> {
-        self.required().ok()
+    pub fn try_take<T: TryFrom<Option<Token>, Error = Error>>(&mut self) -> Option<T> {
+        self.take().ok()
     }
 
-    pub fn required<T: TryFrom<Option<Token>, Error = Error>>(&mut self) -> Result<T, Error> {
+    pub fn take<T: TryFrom<Option<Token>, Error = Error>>(&mut self) -> Result<T, Error> {
         let result = T::try_from(self.peek());
 
         if result.is_ok() {
@@ -149,34 +149,34 @@ mod tests {
     }
 
     #[test]
-    fn optional() {
+    fn try_take() {
         let mut tokens = Tokens::new(" fn");
 
         assert_eq!(tokens.peek(), Some(Token::Padding(Padding::new(" "))));
 
-        let padding1 = tokens.optional::<Padding>();
+        let padding1 = tokens.try_take::<Padding>();
 
         assert_eq!(padding1, Some(Padding::new(" ")));
         assert_eq!(tokens.peek(), Some(Token::Keyword(Keyword::Fn)));
 
-        let padding2 = tokens.optional::<Padding>();
+        let padding2 = tokens.try_take::<Padding>();
 
         assert_eq!(padding2, None);
         assert_eq!(tokens.peek(), Some(Token::Keyword(Keyword::Fn)));
     }
 
     #[test]
-    fn required() {
+    fn take() {
         let mut tokens = Tokens::new(" fn");
 
         assert_eq!(tokens.peek(), Some(Token::Padding(Padding::new(" "))));
 
-        let padding1 = tokens.required::<Padding>();
+        let padding1 = tokens.take::<Padding>();
 
         assert_eq!(padding1, Ok(Padding::new(" ")));
         assert_eq!(tokens.peek(), Some(Token::Keyword(Keyword::Fn)));
 
-        let padding2 = tokens.required::<Padding>();
+        let padding2 = tokens.take::<Padding>();
 
         assert_eq!(padding2, Err(Error::Expected("padding")));
         assert_eq!(tokens.peek(), Some(Token::Keyword(Keyword::Fn)));

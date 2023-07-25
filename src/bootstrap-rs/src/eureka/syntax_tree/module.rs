@@ -11,7 +11,7 @@ pub struct Module {
 
 impl Module {
     pub fn parse(tokens: &mut Tokens) -> Result<Module, Error> {
-        let pre_definitions_padding = tokens.optional();
+        let pre_definitions_padding = tokens.try_take();
         let definitions = zero_or_more(PaddedDefinition::parse)(tokens)?;
 
         if let Some(token) = tokens.peek() {

@@ -23,12 +23,12 @@ impl FunctionDefinition {
 
         tokens.pop();
 
-        let pre_identifier_padding = tokens.required()?;
-        let identifier = tokens.required()?;
-        let pre_parenthesis_padding = tokens.optional();
+        let pre_identifier_padding = tokens.take()?;
+        let identifier = tokens.take()?;
+        let pre_parenthesis_padding = tokens.try_take();
         tokens.expect(Punctuator::LeftParenthesis)?;
         tokens.expect(Punctuator::RightParenthesis)?;
-        let pre_brace_padding = tokens.optional();
+        let pre_brace_padding = tokens.try_take();
         tokens.expect(Punctuator::LeftBrace)?;
         tokens.expect(Punctuator::RightBrace)?;
 

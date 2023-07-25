@@ -12,7 +12,7 @@ pub struct PaddedDefinition {
 impl PaddedDefinition {
     pub fn parse(tokens: &mut Tokens) -> Result<Option<PaddedDefinition>, Error> {
         if let Some(definition) = Definition::parse(tokens)? {
-            let post_definition_padding = tokens.optional();
+            let post_definition_padding = tokens.try_take();
 
             Ok(Some(PaddedDefinition {
                 definition,
