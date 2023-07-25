@@ -73,7 +73,7 @@ impl Tokens {
         result
     }
 
-    pub fn expected<T: Into<Token>>(&mut self, token: T) -> Result<(), Error> {
+    pub fn expect<T: Into<Token>>(&mut self, token: T) -> Result<(), Error> {
         let expected_token: Token = token.into();
 
         if let Some(actual_token) = self.peek() {
@@ -183,34 +183,34 @@ mod tests {
     }
 
     #[test]
-    fn expected() {
+    fn expect() {
         let mut tokens = Tokens::new("fn(value");
         assert_eq!(tokens.peek(), Some(Keyword::Fn.into()));
 
         assert_eq!(
             Err(Error::MissingToken(Keyword::Return.into())),
-            tokens.expected(Keyword::Return),
+            tokens.expect(Keyword::Return),
         );
         assert_eq!(tokens.peek(), Some(Keyword::Fn.into()));
 
         assert_eq!(
             Err(Error::MissingToken(Identifier::new("value").into())),
-            tokens.expected(Identifier::new("value")),
+            tokens.expect(Identifier::new("value")),
         );
         assert_eq!(tokens.peek(), Some(Keyword::Fn.into()));
 
-        assert_eq!(Ok(()), tokens.expected(Keyword::Fn));
+        assert_eq!(Ok(()), tokens.expect(Keyword::Fn));
         assert_eq!(tokens.peek(), Some(Punctuator::LeftParenthesis.into()));
 
-        assert_eq!(Ok(()), tokens.expected(Punctuator::LeftParenthesis));
+        assert_eq!(Ok(()), tokens.expect(Punctuator::LeftParenthesis));
         assert_eq!(tokens.peek(), Some(Identifier::new("value").into()));
 
-        assert_eq!(Ok(()), tokens.expected(Identifier::new("value")));
+        assert_eq!(Ok(()), tokens.expect(Identifier::new("value")));
         assert_eq!(tokens.peek(), None);
 
         assert_eq!(
             Err(Error::MissingToken(Punctuator::RightParenthesis.into())),
-            tokens.expected(Punctuator::RightParenthesis),
+            tokens.expect(Punctuator::RightParenthesis),
         );
         assert_eq!(tokens.peek(), None);
     }

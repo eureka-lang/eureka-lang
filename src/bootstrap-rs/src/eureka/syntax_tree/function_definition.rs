@@ -26,11 +26,11 @@ impl FunctionDefinition {
         let pre_identifier_padding = tokens.required()?;
         let identifier = tokens.required()?;
         let pre_parenthesis_padding = tokens.optional();
-        tokens.expected(Punctuator::LeftParenthesis)?;
-        tokens.expected(Punctuator::RightParenthesis)?;
+        tokens.expect(Punctuator::LeftParenthesis)?;
+        tokens.expect(Punctuator::RightParenthesis)?;
         let pre_brace_padding = tokens.optional();
-        tokens.expected(Punctuator::LeftBrace)?;
-        tokens.expected(Punctuator::RightBrace)?;
+        tokens.expect(Punctuator::LeftBrace)?;
+        tokens.expect(Punctuator::RightBrace)?;
 
         Ok(Some(FunctionDefinition {
             pre_identifier_padding,
