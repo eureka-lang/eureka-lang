@@ -57,6 +57,14 @@ impl Chars {
         Chars::try_new(src).unwrap()
     }
 
+    pub fn try_take(&mut self, predicate: impl Fn(char) -> bool, buffer: &mut String) -> bool {
+        self.take(predicate, buffer).is_ok()
+    }
+
+    pub fn take_while(&mut self, predicate: impl Fn(char) -> bool, buffer: &mut String) {
+        while self.try_take(&predicate, buffer) {}
+    }
+
     pub fn take(
         &mut self,
         predicate: impl Fn(char) -> bool,

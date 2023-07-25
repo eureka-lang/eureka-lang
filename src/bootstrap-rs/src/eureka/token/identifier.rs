@@ -14,22 +14,21 @@ mod restricted {
 
     impl Identifier {
         pub fn lex(chars: &mut Chars) -> Option<Result<Identifier, Keyword>> {
-            if let Some('a'..='z' | 'A'..='Z' | '_') = chars.peek() {
-                let mut value = String::new();
-                value.push(chars.pop().unwrap());
+            let mut value = String::new();
 
-                while let Some('a'..='z' | 'A'..='Z' | '_' | '0'..='9') = chars.peek() {
-                    value.push(chars.pop().unwrap());
-                }
+            if chars.try_take(|c| matches!(c, 'a'..='z' | 'A'..='Z' | '_'), &mut value) {
+                chars.take_while(
+                    |c| matches!(c, 'a'..='z' | 'A'..='Z' | '_' | '0'..='9'),
+                    &mut value,
+                );
 
-                if let Some(keyword) = Keyword::lex(&value) {
-                    return Some(Err(keyword));
-                } else {
-                    return Some(Ok(Identifier { value }));
+                match Keyword::lex(&value) {
+                    Some(keyword) => Some(Err(keyword)),
+                    None => Some(Ok(Identifier { value })),
                 }
+            } else {
+                None
             }
-
-            None
         }
 
         pub fn unlex(&self) -> &str {

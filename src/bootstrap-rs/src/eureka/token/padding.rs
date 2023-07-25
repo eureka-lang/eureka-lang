@@ -34,13 +34,8 @@ mod restricted {
 }
 
 fn lex_comment(chars: &mut Chars, buffer: &mut String) -> Result<bool, Error> {
-    if let Some('#') = chars.peek() {
-        buffer.push(chars.pop().unwrap());
-
-        while let Some(' '..='~') = chars.peek() {
-            buffer.push(chars.pop().unwrap());
-        }
-
+    if chars.try_take(|c| c == '#', buffer) {
+        chars.take_while(|c| matches!(c, ' '..='~'), buffer);
         chars.take(|c| c == '\n', buffer)?;
 
         Ok(true)
@@ -51,11 +46,7 @@ fn lex_comment(chars: &mut Chars, buffer: &mut String) -> Result<bool, Error> {
 
 fn lex_whitespace(chars: &mut Chars, buffer: &mut String) -> bool {
     let buffer_len = buffer.len();
-
-    while let Some(' ' | '\n') = chars.peek() {
-        buffer.push(chars.pop().unwrap());
-    }
-
+    chars.take_while(|c| c == ' ' || c == '\n', buffer);
     buffer.len() > buffer_len
 }
 
