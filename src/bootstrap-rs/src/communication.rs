@@ -20,7 +20,7 @@ impl PositionError {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Error {
     Expected(&'static str),
-    MissingToken(Token),
+    ExpectedToken(Token),
     UnexpectedChar(char),
     UnexpectedCharOrEndOfFile(Option<char>),
     UnexpectedToken(Token),

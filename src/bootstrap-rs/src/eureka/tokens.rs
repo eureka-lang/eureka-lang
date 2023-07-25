@@ -83,7 +83,7 @@ impl Tokens {
             }
         }
 
-        Err(Error::MissingToken(expected_token))
+        Err(Error::ExpectedToken(expected_token))
     }
 }
 
@@ -188,13 +188,13 @@ mod tests {
         assert_eq!(tokens.peek(), Some(Keyword::Fn.into()));
 
         assert_eq!(
-            Err(Error::MissingToken(Keyword::Return.into())),
+            Err(Error::ExpectedToken(Keyword::Return.into())),
             tokens.expect(Keyword::Return),
         );
         assert_eq!(tokens.peek(), Some(Keyword::Fn.into()));
 
         assert_eq!(
-            Err(Error::MissingToken(Identifier::new("value").into())),
+            Err(Error::ExpectedToken(Identifier::new("value").into())),
             tokens.expect(Identifier::new("value")),
         );
         assert_eq!(tokens.peek(), Some(Keyword::Fn.into()));
@@ -209,7 +209,7 @@ mod tests {
         assert_eq!(tokens.peek(), None);
 
         assert_eq!(
-            Err(Error::MissingToken(Punctuator::RightParenthesis.into())),
+            Err(Error::ExpectedToken(Punctuator::RightParenthesis.into())),
             tokens.expect(Punctuator::RightParenthesis),
         );
         assert_eq!(tokens.peek(), None);
