@@ -73,10 +73,12 @@ impl<C: TryFrom<char, Error = Error> + Into<char> + Copy> Chars<C> {
         if let Some(c) = self.peek() {
             if predicate(c) {
                 buffer.push(self.pop().unwrap());
-                return Ok(());
+                Ok(())
+            } else {
+                Err(Error::UnexpectedChar(c))
             }
+        } else {
+            Err(Error::UnexpectedEndOfFile)
         }
-
-        Err(Error::UnexpectedCharOrEndOfFile(self.peek()))
     }
 }

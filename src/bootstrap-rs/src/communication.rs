@@ -22,6 +22,6 @@ pub enum Error {
     Expected(&'static str),
     ExpectedToken(Token),
     UnexpectedChar(char),
-    UnexpectedCharOrEndOfFile(Option<char>),
+    UnexpectedEndOfFile,
     UnexpectedToken(Token),
 }
