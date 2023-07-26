@@ -2,26 +2,27 @@ use crate::communication::Error;
 pub use restricted::Chars;
 
 mod restricted {
-    use crate::communication::Error::UnexpectedChar;
     use crate::communication::{Position, PositionError};
+    use crate::eureka::char::Char;
 
     #[derive(Clone, Debug, Eq, Hash, PartialEq)]
     pub struct Chars {
-        values: Vec<char>,
+        values: Vec<Char>,
         position: Position,
     }
 
     impl Chars {
         pub fn try_new(src: &str) -> Result<Chars, PositionError> {
-            let mut values: Vec<char> = Vec::with_capacity(src.len());
+            let mut values: Vec<Char> = Vec::with_capacity(src.len());
             let mut position = Position::start();
 
             for c in src.chars() {
-                if (' ' <= c && c <= '~') || c == '\n' {
-                    values.push(c);
-                    position.advance(c);
-                } else {
-                    return Err(PositionError::new(position, UnexpectedChar(c)));
+                match Char::try_from(c) {
+                    Ok(c) => {
+                        position.advance(c.into());
+                        values.push(c);
+                    }
+                    Err(e) => return Err(PositionError::new(position, e)),
                 }
             }
 
@@ -34,13 +35,13 @@ mod restricted {
         }
 
         pub fn peek(&self) -> Option<char> {
-            self.values.last().copied()
+            self.values.last().copied().map(|c| c.into())
         }
 
         pub fn pop(&mut self) -> Option<char> {
             if let Some(c) = self.values.pop() {
-                self.position.advance(c);
-                Some(c)
+                self.position.advance(c.into());
+                Some(c.into())
             } else {
                 None
             }
