@@ -1,5 +1,5 @@
 use crate::communication::Error;
-use crate::eureka::{Identifier, Keyword, Padding, Punctuator, Token, Tokens};
+use crate::eureka::{Identifier, Keyword, Padding, Punctuation, Token, Tokens};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct FunctionDefinition {
@@ -7,11 +7,11 @@ pub struct FunctionDefinition {
     pub pre_identifier_padding: Padding,
     pub identifier: Identifier,
     pub pre_parenthesis_padding: Option<Padding>,
-    // Punctuator::LeftParenthesis
-    // Punctuator::RightParenthesis
+    // Punctuation::LeftParenthesis
+    // Punctuation::RightParenthesis
     pub pre_brace_padding: Option<Padding>,
-    // Punctuator::LeftBrace
-    // Punctuator::RightBrace
+    // Punctuation::LeftBrace
+    // Punctuation::RightBrace
 }
 
 impl FunctionDefinition {
@@ -25,11 +25,11 @@ impl FunctionDefinition {
         let pre_identifier_padding = tokens.take()?;
         let identifier = tokens.take()?;
         let pre_parenthesis_padding = tokens.try_take();
-        tokens.expect(Punctuator::LeftParenthesis)?;
-        tokens.expect(Punctuator::RightParenthesis)?;
+        tokens.expect(Punctuation::LeftParenthesis)?;
+        tokens.expect(Punctuation::RightParenthesis)?;
         let pre_brace_padding = tokens.try_take();
-        tokens.expect(Punctuator::LeftBrace)?;
-        tokens.expect(Punctuator::RightBrace)?;
+        tokens.expect(Punctuation::LeftBrace)?;
+        tokens.expect(Punctuation::RightBrace)?;
 
         Ok(Some(FunctionDefinition {
             pre_identifier_padding,

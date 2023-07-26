@@ -6,7 +6,7 @@ mod chars;
 
 mod syntax_tree;
 
-pub use token::{Identifier, Keyword, Padding, Punctuator, Token};
+pub use token::{Identifier, Keyword, Padding, Punctuation, Token};
 mod token;
 
 pub use tokens::Tokens;

@@ -3,19 +3,19 @@ use crate::eureka::Chars;
 pub use identifier::Identifier;
 pub use keyword::Keyword;
 pub use padding::Padding;
-pub use punctuator::Punctuator;
+pub use punctuation::Punctuation;
 
 mod identifier;
 mod keyword;
 mod padding;
-mod punctuator;
+mod punctuation;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Token {
     Identifier(Identifier),
     Keyword(Keyword),
     Padding(Padding),
-    Punctuator(Punctuator),
+    Punctuation(Punctuation),
 }
 
 impl Token {
@@ -31,8 +31,8 @@ impl Token {
             return Ok(Some(Self::Padding(padding)));
         }
 
-        if let Some(punctuator) = Punctuator::lex(chars) {
-            return Ok(Some(Self::Punctuator(punctuator)));
+        if let Some(punctuation) = Punctuation::lex(chars) {
+            return Ok(Some(Self::Punctuation(punctuation)));
         }
 
         match chars.peek() {
@@ -46,7 +46,7 @@ impl Token {
             Self::Identifier(identifier) => identifier.unlex(),
             Self::Keyword(keyword) => keyword.unlex(),
             Self::Padding(padding) => padding.unlex(),
-            Self::Punctuator(punctuator) => punctuator.unlex(),
+            Self::Punctuation(punctuation) => punctuation.unlex(),
         }
     }
 }
@@ -69,9 +69,9 @@ impl From<Padding> for Token {
     }
 }
 
-impl From<Punctuator> for Token {
-    fn from(value: Punctuator) -> Token {
-        Token::Punctuator(value)
+impl From<Punctuation> for Token {
+    fn from(value: Punctuation) -> Token {
+        Token::Punctuation(value)
     }
 }
 
@@ -93,19 +93,19 @@ mod tests {
         assert_eq!(token, Identifier::new("main").into());
 
         let token = Token::lex(&mut chars).unwrap().unwrap();
-        assert_eq!(token, Punctuator::LeftParenthesis.into());
+        assert_eq!(token, Punctuation::LeftParenthesis.into());
 
         let token = Token::lex(&mut chars).unwrap().unwrap();
-        assert_eq!(token, Punctuator::RightParenthesis.into());
+        assert_eq!(token, Punctuation::RightParenthesis.into());
 
         let token = Token::lex(&mut chars).unwrap().unwrap();
         assert_eq!(token, Padding::new(" ").into());
 
         let token = Token::lex(&mut chars).unwrap().unwrap();
-        assert_eq!(token, Punctuator::LeftBrace.into());
+        assert_eq!(token, Punctuation::LeftBrace.into());
 
         let token = Token::lex(&mut chars).unwrap().unwrap();
-        assert_eq!(token, Punctuator::RightBrace.into());
+        assert_eq!(token, Punctuation::RightBrace.into());
 
         assert!(Token::lex(&mut chars).unwrap().is_none());
         assert!(chars.peek().is_none());

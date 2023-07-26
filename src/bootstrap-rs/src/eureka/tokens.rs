@@ -90,7 +90,7 @@ impl Tokens {
 mod tests {
     use super::*;
     use crate::communication::Position;
-    use crate::eureka::{Identifier, Keyword, Padding, Punctuator, Token};
+    use crate::eureka::{Identifier, Keyword, Padding, Punctuation, Token};
 
     #[test]
     fn empty() {
@@ -199,17 +199,17 @@ mod tests {
         assert_eq!(tokens.peek(), Some(Keyword::Fn.into()));
 
         assert_eq!(Ok(()), tokens.expect(Keyword::Fn));
-        assert_eq!(tokens.peek(), Some(Punctuator::LeftParenthesis.into()));
+        assert_eq!(tokens.peek(), Some(Punctuation::LeftParenthesis.into()));
 
-        assert_eq!(Ok(()), tokens.expect(Punctuator::LeftParenthesis));
+        assert_eq!(Ok(()), tokens.expect(Punctuation::LeftParenthesis));
         assert_eq!(tokens.peek(), Some(Identifier::new("value").into()));
 
         assert_eq!(Ok(()), tokens.expect(Identifier::new("value")));
         assert_eq!(tokens.peek(), None);
 
         assert_eq!(
-            Err(Error::ExpectedToken(Punctuator::RightParenthesis.into())),
-            tokens.expect(Punctuator::RightParenthesis),
+            Err(Error::ExpectedToken(Punctuation::RightParenthesis.into())),
+            tokens.expect(Punctuation::RightParenthesis),
         );
         assert_eq!(tokens.peek(), None);
     }

@@ -1,16 +1,16 @@
 use crate::eureka::Chars;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub enum Punctuator {
+pub enum Punctuation {
     LeftParenthesis,
     RightParenthesis,
     LeftBrace,
     RightBrace,
 }
 
-impl Punctuator {
-    pub fn lex(chars: &mut Chars) -> Option<Punctuator> {
-        let punctuator = match chars.peek() {
+impl Punctuation {
+    pub fn lex(chars: &mut Chars) -> Option<Punctuation> {
+        let punctuation = match chars.peek() {
             Some('(') => Self::LeftParenthesis,
             Some(')') => Self::RightParenthesis,
             Some('{') => Self::LeftBrace,
@@ -20,7 +20,7 @@ impl Punctuator {
 
         chars.pop();
 
-        Some(punctuator)
+        Some(punctuation)
     }
 
     pub fn unlex(&self) -> &'static str {
@@ -39,16 +39,16 @@ mod tests {
 
     #[test]
     fn lex_succeeds() {
-        for (src, expected_punctuator, expected_peek) in [
-            ("(a", Punctuator::LeftParenthesis, Some('a')),
-            (")", Punctuator::RightParenthesis, None),
-            ("{\n    ", Punctuator::LeftBrace, Some('\n')),
-            ("} else", Punctuator::RightBrace, Some(' ')),
+        for (src, expected_punctuation, expected_peek) in [
+            ("(a", Punctuation::LeftParenthesis, Some('a')),
+            (")", Punctuation::RightParenthesis, None),
+            ("{\n    ", Punctuation::LeftBrace, Some('\n')),
+            ("} else", Punctuation::RightBrace, Some(' ')),
         ] {
             let mut chars = Chars::new(src);
-            let actual_punctuator = Punctuator::lex(&mut chars).unwrap();
+            let actual_punctuation = Punctuation::lex(&mut chars).unwrap();
 
-            assert_eq!(expected_punctuator, actual_punctuator);
+            assert_eq!(expected_punctuation, actual_punctuation);
             assert_eq!(expected_peek, chars.peek());
         }
     }
@@ -57,7 +57,7 @@ mod tests {
     fn lex_fails() {
         for src in ["", "x", "1", "if", " ", "#"] {
             let mut chars = Chars::new(src);
-            assert!(Punctuator::lex(&mut chars).is_none());
+            assert!(Punctuation::lex(&mut chars).is_none());
             assert_eq!(src.chars().next(), chars.peek());
         }
     }
