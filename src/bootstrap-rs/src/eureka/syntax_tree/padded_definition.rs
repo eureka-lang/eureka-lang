@@ -1,7 +1,6 @@
 use crate::communication::Error;
 use crate::eureka::syntax_tree::Definition;
-use crate::eureka::token::Padding;
-use crate::eureka::tokens::Tokens;
+use crate::eureka::{Padding, Tokens};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct PaddedDefinition {

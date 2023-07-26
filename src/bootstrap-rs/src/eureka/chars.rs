@@ -1,6 +1,6 @@
 use crate::{eureka, language};
 
-pub type Chars = language::Chars<eureka::char::Char>;
+pub type Chars = language::Chars<eureka::Char>;
 
 #[cfg(test)]
 mod tests {

@@ -1,11 +1,10 @@
 use crate::communication::{Error, INVALID_VALUE};
-use crate::eureka::chars::Chars;
-use crate::eureka::token::Token;
+use crate::eureka::{Chars, Token};
 pub use restricted::Padding;
 
 mod restricted {
     use crate::communication::Error;
-    use crate::eureka::chars::Chars;
+    use crate::eureka::Chars;
 
     #[derive(Clone, Debug, Eq, Hash, PartialEq)]
     pub struct Padding {

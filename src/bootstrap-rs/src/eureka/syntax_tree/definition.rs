@@ -1,6 +1,6 @@
 use crate::communication::Error;
 use crate::eureka::syntax_tree::FunctionDefinition;
-use crate::eureka::tokens::Tokens;
+use crate::eureka::Tokens;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Definition {

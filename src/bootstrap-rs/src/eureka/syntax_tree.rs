@@ -1,5 +1,5 @@
 use crate::communication::Error;
-use crate::eureka::tokens::Tokens;
+use crate::eureka::Tokens;
 
 pub use module::Module;
 mod module;
@@ -32,7 +32,7 @@ where
 mod tests {
     use super::*;
     use crate::communication::Position;
-    use crate::eureka::token::{Identifier, Padding};
+    use crate::eureka::{Identifier, Padding};
 
     #[test]
     fn test_zero_or_more_parse_function_definition_zero() {

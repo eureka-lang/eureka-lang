@@ -1,11 +1,10 @@
 use crate::communication::Error;
-use crate::eureka::token::Token;
+use crate::eureka::Token;
 pub use restricted::Tokens;
 
 mod restricted {
     use crate::communication::{Position, PositionError};
-    use crate::eureka::chars::Chars;
-    use crate::eureka::token::Token;
+    use crate::eureka::{Chars, Token};
 
     #[derive(Clone, Debug, Eq, Hash, PartialEq)]
     pub struct Tokens {
@@ -91,7 +90,7 @@ impl Tokens {
 mod tests {
     use super::*;
     use crate::communication::Position;
-    use crate::eureka::token::{Identifier, Keyword, Padding, Punctuator, Token};
+    use crate::eureka::{Identifier, Keyword, Padding, Punctuator, Token};
 
     #[test]
     fn empty() {

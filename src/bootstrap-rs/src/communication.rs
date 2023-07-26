@@ -1,6 +1,6 @@
-use crate::eureka::token::Token;
-pub use position::Position;
+use crate::eureka::Token;
 
+pub use position::Position;
 mod position;
 
 pub const INVALID_VALUE: &str = "invalid value";

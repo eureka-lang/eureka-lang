@@ -1,11 +1,9 @@
 use crate::communication::{Error, INVALID_VALUE};
-use crate::eureka::chars::Chars;
-use crate::eureka::token::Token;
+use crate::eureka::{Chars, Token};
 pub use restricted::Identifier;
 
 mod restricted {
-    use crate::eureka::chars::Chars;
-    use crate::eureka::token::Keyword;
+    use crate::eureka::{Chars, Keyword};
 
     #[derive(Clone, Debug, Eq, Hash, PartialEq)]
     pub struct Identifier {
@@ -65,7 +63,7 @@ impl TryFrom<Option<Token>> for Identifier {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::eureka::token::Keyword;
+    use crate::eureka::Keyword;
 
     #[test]
     fn new_succeeds() {

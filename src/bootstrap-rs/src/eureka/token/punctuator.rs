@@ -1,4 +1,4 @@
-use crate::eureka::chars::Chars;
+use crate::eureka::Chars;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Punctuator {

@@ -1,6 +1,5 @@
 use crate::communication::Error;
-use crate::eureka::token::{Identifier, Keyword, Padding, Punctuator, Token};
-use crate::eureka::tokens::Tokens;
+use crate::eureka::{Identifier, Keyword, Padding, Punctuator, Token, Tokens};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct FunctionDefinition {

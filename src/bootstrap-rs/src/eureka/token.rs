@@ -1,5 +1,5 @@
 use crate::communication::Error;
-use crate::eureka::chars::Chars;
+use crate::eureka::Chars;
 pub use identifier::Identifier;
 pub use keyword::Keyword;
 pub use padding::Padding;
