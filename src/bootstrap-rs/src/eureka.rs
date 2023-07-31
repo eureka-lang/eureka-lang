@@ -1,8 +1,4 @@
-pub use self::char::Char;
-mod char;
-
-pub use chars::Chars;
-mod chars;
+pub use crate::language::Chars;
 
 mod syntax_tree;
 

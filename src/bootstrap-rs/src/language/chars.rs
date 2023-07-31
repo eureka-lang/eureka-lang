@@ -5,23 +5,22 @@ mod restricted {
     use crate::communication::{Error, Position, PositionError};
 
     #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-    pub struct Chars<C: TryFrom<char, Error = Error> + Into<char> + Copy> {
-        values: Vec<C>,
+    pub struct Chars {
+        values: Vec<char>,
         position: Position,
     }
 
-    impl<C: TryFrom<char, Error = Error> + Into<char> + Copy> Chars<C> {
-        pub fn try_new(src: &str) -> Result<Self, PositionError> {
-            let mut values: Vec<C> = Vec::with_capacity(src.len());
+    impl Chars {
+        pub fn try_new(src: &str) -> Result<Chars, PositionError> {
+            let mut values: Vec<char> = Vec::with_capacity(src.len());
             let mut position = Position::start();
 
             for c in src.chars() {
-                match C::try_from(c) {
-                    Ok(c) => {
-                        position.advance(c.into());
-                        values.push(c);
-                    }
-                    Err(e) => return Err(PositionError::new(position, e)),
+                if (' ' <= c && c <= '~') || c == '\n' {
+                    position.advance(c);
+                    values.push(c);
+                } else {
+                    return Err(PositionError::new(position, Error::UnexpectedChar(c)));
                 }
             }
 
@@ -34,13 +33,13 @@ mod restricted {
         }
 
         pub fn peek(&self) -> Option<char> {
-            self.values.last().copied().map(|c| c.into())
+            self.values.last().copied()
         }
 
         pub fn pop(&mut self) -> Option<char> {
             if let Some(c) = self.values.pop() {
-                self.position.advance(c.into());
-                Some(c.into())
+                self.position.advance(c);
+                Some(c)
             } else {
                 None
             }
@@ -52,8 +51,8 @@ mod restricted {
     }
 }
 
-impl<C: TryFrom<char, Error = Error> + Into<char> + Copy> Chars<C> {
-    pub fn new(src: &str) -> Self {
+impl Chars {
+    pub fn new(src: &str) -> Chars {
         Chars::try_new(src).unwrap()
     }
 
@@ -80,5 +79,81 @@ impl<C: TryFrom<char, Error = Error> + Into<char> + Copy> Chars<C> {
         } else {
             Err(Error::UnexpectedEndOfFile)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::communication::{Position, PositionError};
+
+    #[test]
+    fn empty() {
+        let mut chars = Chars::new("");
+
+        assert_eq!(chars, Chars::try_new("").unwrap());
+
+        assert!(chars.peek().is_none());
+        assert!(chars.pop().is_none());
+
+        assert!(chars.peek().is_none());
+        assert!(chars.pop().is_none());
+
+        assert!(chars.peek().is_none());
+    }
+
+    #[test]
+    fn one_line() {
+        let mut chars = Chars::new("a+b");
+
+        assert_eq!(chars.peek(), Some('a'));
+        assert_eq!(chars.pop(), Some('a'));
+
+        assert_eq!(chars.peek(), Some('+'));
+        assert_eq!(chars.pop(), Some('+'));
+
+        assert_eq!(chars.peek(), Some('b'));
+        assert_eq!(chars.pop(), Some('b'));
+
+        assert!(chars.peek().is_none());
+    }
+
+    #[test]
+    fn two_lines() {
+        let mut chars = Chars::new("A\nB\n");
+
+        assert_eq!(chars.pop(), Some('A'));
+        assert_eq!(chars.pop(), Some('\n'));
+        assert_eq!(chars.pop(), Some('B'));
+        assert_eq!(chars.pop(), Some('\n'));
+
+        assert!(chars.peek().is_none());
+    }
+
+    #[test]
+    fn unexpected_char() {
+        assert_eq!(
+            Err(PositionError::new(
+                Position::new(1, 2),
+                Error::UnexpectedChar('\r')
+            )),
+            Chars::try_new("x\r"),
+        );
+
+        assert_eq!(
+            Err(PositionError::new(
+                Position::new(1, 2),
+                Error::UnexpectedChar('\t')
+            )),
+            Chars::try_new("a\t\n"),
+        );
+
+        assert_eq!(
+            Err(PositionError::new(
+                Position::new(2, 1),
+                Error::UnexpectedChar('\0')
+            )),
+            Chars::try_new("a\n\0\n"),
+        );
     }
 }
