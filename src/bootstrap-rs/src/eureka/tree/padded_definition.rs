@@ -1,5 +1,5 @@
 use crate::communication::Error;
-use crate::eureka::syntax_tree::Definition;
+use crate::eureka::tree::Definition;
 use crate::eureka::{Padding, Tokens};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]

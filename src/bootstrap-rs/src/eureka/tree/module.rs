@@ -1,5 +1,5 @@
 use crate::communication::Error;
-use crate::eureka::syntax_tree::{zero_or_more, PaddedDefinition};
+use crate::eureka::tree::{zero_or_more, PaddedDefinition};
 use crate::eureka::{Padding, Tokens};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -27,7 +27,7 @@ impl Module {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::eureka::syntax_tree::{Definition, FunctionDefinition};
+    use crate::eureka::tree::{Definition, FunctionDefinition};
     use crate::eureka::{Identifier, Keyword, Padding};
 
     #[test]
