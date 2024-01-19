@@ -15,9 +15,7 @@ mod restricted {
         pub fn lex(chars: &mut Chars) -> Result<Option<Padding>, Error> {
             let mut value = String::new();
 
-            while super::lex_whitespace(chars, &mut value) || super::lex_comment(chars, &mut value)?
-            {
-            }
+            while super::lex_whitespace(chars, &mut value) {}
 
             if value.is_empty() {
                 Ok(None)
@@ -29,17 +27,6 @@ mod restricted {
         pub fn unlex(&self) -> &str {
             self.value.as_str()
         }
-    }
-}
-
-fn lex_comment(chars: &mut Chars, buffer: &mut String) -> Result<bool, Error> {
-    if chars.try_take(|c| c == '#', buffer) {
-        chars.take_while(|c| matches!(c, ' '..='~'), buffer);
-        chars.take(|c| c == '\n', buffer)?;
-
-        Ok(true)
-    } else {
-        Ok(false)
     }
 }
 
@@ -104,17 +91,7 @@ mod tests {
             (" else", " ", Some('e')),
             ("\n", "\n", None),
             ("\nSome ", "\n", Some('S')),
-            ("#ok\n", "#ok\n", None),
-            ("#ok\n2 \n", "#ok\n", Some('2')),
             (" \n\n ...", " \n\n ", Some('.')),
-            (" #1\n?\n", " #1\n", Some('?')),
-            ("#1\n ?\n", "#1\n ", Some('?')),
-            (" \n\n#x\n", " \n\n#x\n", None),
-            (
-                "\n #1\n#2\n ##aA!~\n\n  \n\n#4\nSome \n\n#x\n",
-                "\n #1\n#2\n ##aA!~\n\n  \n\n#4\n",
-                Some('S'),
-            ),
         ] {
             let mut chars = Chars::new(src);
             let actual_padding = Padding::lex(&mut chars).unwrap().unwrap();
@@ -130,39 +107,6 @@ mod tests {
             let mut chars = Chars::new(src);
             assert!(Padding::lex(&mut chars).unwrap().is_none());
             assert_eq!(src.chars().next(), chars.peek());
-        }
-    }
-
-    #[test]
-    fn lex_error() {
-        let mut chars = Chars::new("#");
-        assert!(Padding::lex(&mut chars).is_err());
-    }
-
-    #[test]
-    fn test_lex_comment() {
-        for (src, expected_buffer, expected_result) in [
-            ("", "", Ok(false)),
-            ("x\n", "", Ok(false)),
-            ("#\n", "#\n", Ok(true)),
-            ("#\nX", "#\n", Ok(true)),
-            (
-                "# This is a comment!\nY",
-                "# This is a comment!\n",
-                Ok(true),
-            ),
-            (
-                "#a-zA-Z0-9?() !~ #ok\n    {\n",
-                "#a-zA-Z0-9?() !~ #ok\n",
-                Ok(true),
-            ),
-            ("## ## ##\n#\n", "## ## ##\n", Ok(true)),
-        ] {
-            let mut chars = Chars::new(src);
-            let mut actual_buffer = String::new();
-
-            assert_eq!(expected_result, lex_comment(&mut chars, &mut actual_buffer));
-            assert_eq!(expected_buffer.to_string(), actual_buffer);
         }
     }
 
