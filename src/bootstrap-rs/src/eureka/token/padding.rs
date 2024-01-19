@@ -15,7 +15,7 @@ mod restricted {
         pub fn lex(chars: &mut Chars) -> Result<Option<Padding>, Error> {
             let mut value = String::new();
 
-            while super::lex_whitespace(chars, &mut value) {}
+            chars.take_while(|c| c == ' ' || c == '\n', &mut value);
 
             if value.is_empty() {
                 Ok(None)
@@ -28,12 +28,6 @@ mod restricted {
             self.value.as_str()
         }
     }
-}
-
-fn lex_whitespace(chars: &mut Chars, buffer: &mut String) -> bool {
-    let buffer_len = buffer.len();
-    chars.take_while(|c| c == ' ' || c == '\n', buffer);
-    buffer.len() > buffer_len
 }
 
 impl Padding {
@@ -87,10 +81,10 @@ mod tests {
     fn lex_succeeds() {
         for (src, expected_padding, expected_peek) in [
             (" ", " ", None),
-            (" \n", " \n", None),
             (" else", " ", Some('e')),
             ("\n", "\n", None),
             ("\nSome ", "\n", Some('S')),
+            (" \n", " \n", None),
             (" \n\n ...", " \n\n ", Some('.')),
         ] {
             let mut chars = Chars::new(src);
@@ -103,32 +97,10 @@ mod tests {
 
     #[test]
     fn lex_fails() {
-        for src in ["", "_", "-", "x", "1", "+"] {
+        for src in ["", "_", "-", "x", "x\n", "1", "+", "#", "#\n"] {
             let mut chars = Chars::new(src);
             assert!(Padding::lex(&mut chars).unwrap().is_none());
             assert_eq!(src.chars().next(), chars.peek());
-        }
-    }
-
-    #[test]
-    fn test_lex_whitespace() {
-        for (src, expected_buffer, expected_result) in [
-            ("", "", false),
-            ("x\n", "", false),
-            (" ", " ", true),
-            (" \n", " \n", true),
-            (" x\n", " ", true),
-            ("\n", "\n", true),
-            ("\nFn ", "\n", true),
-        ] {
-            let mut chars = Chars::new(src);
-            let mut actual_buffer = String::new();
-
-            assert_eq!(
-                expected_result,
-                lex_whitespace(&mut chars, &mut actual_buffer),
-            );
-            assert_eq!(expected_buffer.to_string(), actual_buffer);
         }
     }
 }
