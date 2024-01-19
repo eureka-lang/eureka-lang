@@ -111,8 +111,8 @@ mod tests {
             ("if", Keyword::If, None),
             ("return", Keyword::Return, None),
             ("fn main", Keyword::Fn, Some(' ')),
-            ("if a < b {}", Keyword::If, Some(' ')),
-            ("return 0;", Keyword::Return, Some(' ')),
+            ("if (a < b) {}", Keyword::If, Some(' ')),
+            ("return (0);", Keyword::Return, Some(' ')),
         ] {
             let mut chars = Chars::new(src);
             let actual_keyword = Identifier::lex(&mut chars).unwrap().unwrap_err();

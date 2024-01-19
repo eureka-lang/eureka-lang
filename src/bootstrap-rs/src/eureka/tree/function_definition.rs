@@ -60,7 +60,7 @@ mod tests {
 
     #[test]
     fn parse_none() {
-        let mut tokens = Tokens::new("return x");
+        let mut tokens = Tokens::new("return (x)");
         assert_eq!(Ok(None), FunctionDefinition::parse(&mut tokens));
     }
 
