@@ -36,6 +36,12 @@ mod restricted {
             self.values.last().copied()
         }
 
+        pub fn peek2(&self) -> Option<char> {
+            self.values
+                .split_last()
+                .and_then(|(_, values)| values.last().copied())
+        }
+
         pub fn pop(&mut self) -> Option<char> {
             if let Some(c) = self.values.pop() {
                 self.position.advance(c);
@@ -94,12 +100,15 @@ mod tests {
         assert_eq!(chars, Chars::try_new("").unwrap());
 
         assert!(chars.peek().is_none());
+        assert!(chars.peek2().is_none());
         assert!(chars.pop().is_none());
 
         assert!(chars.peek().is_none());
+        assert!(chars.peek2().is_none());
         assert!(chars.pop().is_none());
 
         assert!(chars.peek().is_none());
+        assert!(chars.peek2().is_none());
     }
 
     #[test]
@@ -107,15 +116,19 @@ mod tests {
         let mut chars = Chars::new("a+b");
 
         assert_eq!(chars.peek(), Some('a'));
+        assert_eq!(chars.peek2(), Some('+'));
         assert_eq!(chars.pop(), Some('a'));
 
         assert_eq!(chars.peek(), Some('+'));
+        assert_eq!(chars.peek2(), Some('b'));
         assert_eq!(chars.pop(), Some('+'));
 
         assert_eq!(chars.peek(), Some('b'));
+        assert_eq!(chars.peek2(), None);
         assert_eq!(chars.pop(), Some('b'));
 
-        assert!(chars.peek().is_none());
+        assert_eq!(chars.peek(), None);
+        assert_eq!(chars.peek2(), None);
     }
 
     #[test]
@@ -128,6 +141,7 @@ mod tests {
         assert_eq!(chars.pop(), Some('\n'));
 
         assert!(chars.peek().is_none());
+        assert!(chars.peek2().is_none());
     }
 
     #[test]
