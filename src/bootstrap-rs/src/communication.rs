@@ -19,8 +19,10 @@ impl PositionError {
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Error {
+    ExceededMaximumNestingLevel,
     Expected(&'static str),
     ExpectedToken(Token),
+    Unexpected(&'static str),
     UnexpectedChar(char),
     UnexpectedEndOfFile,
     UnexpectedToken(Token),

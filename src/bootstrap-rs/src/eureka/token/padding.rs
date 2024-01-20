@@ -14,10 +14,31 @@ mod restricted {
     impl Padding {
         pub fn lex(chars: &mut Chars) -> Result<Option<Padding>, Error> {
             let mut value = String::new();
+            let mut level: u8 = 0;
 
-            chars.take_while(|c| c == ' ' || c == '\n', &mut value);
+            loop {
+                match chars.peek() {
+                    Some(' ' | '\n') => value.push(chars.pop().unwrap()),
+                    Some('/') if chars.peek2() == Some('*') => {
+                        level = level
+                            .checked_add(1)
+                            .ok_or(Error::ExceededMaximumNestingLevel)?;
+                        value.push(chars.pop().unwrap());
+                        value.push(chars.pop().unwrap());
+                    }
+                    Some('*') if chars.peek2() == Some('/') => {
+                        level = level.checked_sub(1).ok_or(Error::Unexpected("*/"))?;
+                        value.push(chars.pop().unwrap());
+                        value.push(chars.pop().unwrap());
+                    }
+                    Some('!'..='~') if level > 0 => value.push(chars.pop().unwrap()),
+                    _ => break,
+                }
+            }
 
-            if value.is_empty() {
+            if level > 0 {
+                Err(Error::Expected("*/"))
+            } else if value.is_empty() {
                 Ok(None)
             } else {
                 Ok(Some(Padding { value }))
@@ -84,8 +105,12 @@ mod tests {
             (" else", " ", Some('e')),
             ("\n", "\n", None),
             ("\nSome ", "\n", Some('S')),
-            (" \n", " \n", None),
-            (" \n\n ...", " \n\n ", Some('.')),
+            ("/**/", "/**/", None),
+            ("/**/, ", "/**/", Some(',')),
+            ("/** */ /**/", "/** */ /**/", None),
+            ("/*/ */", "/*/ */", None),
+            (" /* !0-9*A_Z/a~z\n*/\n", " /* !0-9*A_Z/a~z\n*/\n", None),
+            (" \n\n /* /**/ */ ...", " \n\n /* /**/ */ ", Some('.')),
         ] {
             let mut chars = Chars::new(src);
             let actual_padding = Padding::lex(&mut chars).unwrap().unwrap();
@@ -97,10 +122,48 @@ mod tests {
 
     #[test]
     fn lex_fails() {
-        for src in ["", "_", "-", "x", "x\n", "1", "+", "#", "#\n"] {
+        for src in ["", "_", "-", "x", "x\n", "1", "+", "!", "~", "#", "#\n"] {
             let mut chars = Chars::new(src);
             assert!(Padding::lex(&mut chars).unwrap().is_none());
             assert_eq!(src.chars().next(), chars.peek());
         }
+    }
+
+    #[test]
+    fn lex_error() {
+        for (src, expected_column) in [("/*", 3), ("*/", 1), ("/*/", 4)] {
+            let mut chars = Chars::new(src);
+            assert!(Padding::lex(&mut chars).is_err());
+            assert_eq!(1, chars.position().line());
+            assert_eq!(expected_column, chars.position().column());
+        }
+    }
+
+    #[test]
+    fn lex_maximum_nesting_level() {
+        let mut src = String::new();
+        src.extend(std::iter::repeat("/*").take(255));
+        src.extend(std::iter::repeat("*/").take(255));
+
+        let mut chars = Chars::new(&src);
+        let padding = Padding::lex(&mut chars).unwrap().unwrap();
+
+        assert_eq!(src.as_str(), padding.unlex());
+        assert!(chars.peek().is_none());
+    }
+
+    #[test]
+    fn lex_error_exceeded_maximum_nesting_level() {
+        let mut src = String::new();
+        src.extend(std::iter::repeat("/*").take(256));
+        src.extend(std::iter::repeat("*/").take(256));
+
+        let mut chars = Chars::new(&src);
+        assert_eq!(
+            Error::ExceededMaximumNestingLevel,
+            Padding::lex(&mut chars).unwrap_err(),
+        );
+        assert_eq!(1, chars.position().line());
+        assert_eq!(511, chars.position().column());
     }
 }
