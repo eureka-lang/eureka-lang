@@ -11,7 +11,7 @@ pub enum Punctuation {
 impl Punctuation {
     pub fn lex(chars: &mut Chars) -> Option<Punctuation> {
         let punctuation = match chars.peek() {
-            Some('(') => Self::LeftParenthesis,
+            Some('(') if chars.peek2() != Some('*') => Self::LeftParenthesis,
             Some(')') => Self::RightParenthesis,
             Some('{') => Self::LeftBrace,
             Some('}') => Self::RightBrace,
@@ -55,7 +55,7 @@ mod tests {
 
     #[test]
     fn lex_fails() {
-        for src in ["", "x", "1", "if", " ", "#"] {
+        for src in ["", "x", "1", "if", " ", "#", "(**)"] {
             let mut chars = Chars::new(src);
             assert!(Punctuation::lex(&mut chars).is_none());
             assert_eq!(src.chars().next(), chars.peek());

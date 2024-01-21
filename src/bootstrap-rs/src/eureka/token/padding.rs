@@ -19,15 +19,15 @@ mod restricted {
             loop {
                 match chars.peek() {
                     Some(' ' | '\n') => value.push(chars.pop().unwrap()),
-                    Some('/') if chars.peek2() == Some('*') => {
+                    Some('(') if chars.peek2() == Some('*') => {
                         level = level
                             .checked_add(1)
                             .ok_or(Error::ExceededMaximumNestingLevel)?;
                         value.push(chars.pop().unwrap());
                         value.push(chars.pop().unwrap());
                     }
-                    Some('*') if chars.peek2() == Some('/') => {
-                        level = level.checked_sub(1).ok_or(Error::Unexpected("*/"))?;
+                    Some('*') if chars.peek2() == Some(')') => {
+                        level = level.checked_sub(1).ok_or(Error::Unexpected("*)"))?;
                         value.push(chars.pop().unwrap());
                         value.push(chars.pop().unwrap());
                     }
@@ -37,7 +37,7 @@ mod restricted {
             }
 
             if level > 0 {
-                Err(Error::Expected("*/"))
+                Err(Error::Expected("*)"))
             } else if value.is_empty() {
                 Ok(None)
             } else {
@@ -104,13 +104,13 @@ mod tests {
             (" ", " ", None),
             (" else", " ", Some('e')),
             ("\n", "\n", None),
-            ("\nSome ", "\n", Some('S')),
-            ("/**/", "/**/", None),
-            ("/**/, ", "/**/", Some(',')),
-            ("/** */ /**/", "/** */ /**/", None),
-            ("/*/ */", "/*/ */", None),
-            (" /* !0-9*A_Z/a~z\n*/\n", " /* !0-9*A_Z/a~z\n*/\n", None),
-            (" \n\n /* /**/ */ ...", " \n\n /* /**/ */ ", Some('.')),
+            ("\n) ", "\n", Some(')')),
+            ("(**)", "(**)", None),
+            ("(**)* ", "(**)", Some('*')),
+            ("(** *) (**)", "(** *) (**)", None),
+            ("(*) *)", "(*) *)", None),
+            (" (* !(0-9)*A_Z/a~z\n*)\n", " (* !(0-9)*A_Z/a~z\n*)\n", None),
+            (" \n\n (* (**) *) (a", " \n\n (* (**) *) ", Some('(')),
         ] {
             let mut chars = Chars::new(src);
             let actual_padding = Padding::lex(&mut chars).unwrap().unwrap();
@@ -122,7 +122,9 @@ mod tests {
 
     #[test]
     fn lex_fails() {
-        for src in ["", "_", "-", "x", "x\n", "1", "+", "!", "~", "#", "#\n"] {
+        for src in [
+            "", "_", "-", "x", "x\n", "1", "+", "!", "~", "#", "#\n", "/**/", "*(*",
+        ] {
             let mut chars = Chars::new(src);
             assert!(Padding::lex(&mut chars).unwrap().is_none());
             assert_eq!(src.chars().next(), chars.peek());
@@ -131,7 +133,7 @@ mod tests {
 
     #[test]
     fn lex_error() {
-        for (src, expected_column) in [("/*", 3), ("*/", 1), ("/*/", 4)] {
+        for (src, expected_column) in [("(*", 3), ("*)", 1), ("(*)", 4)] {
             let mut chars = Chars::new(src);
             assert!(Padding::lex(&mut chars).is_err());
             assert_eq!(1, chars.position().line());
@@ -142,8 +144,8 @@ mod tests {
     #[test]
     fn lex_maximum_nesting_level() {
         let mut src = String::new();
-        src.extend(std::iter::repeat("/*").take(255));
-        src.extend(std::iter::repeat("*/").take(255));
+        src.extend(std::iter::repeat("(*").take(255));
+        src.extend(std::iter::repeat("*)").take(255));
 
         let mut chars = Chars::new(&src);
         let padding = Padding::lex(&mut chars).unwrap().unwrap();
@@ -155,8 +157,8 @@ mod tests {
     #[test]
     fn lex_error_exceeded_maximum_nesting_level() {
         let mut src = String::new();
-        src.extend(std::iter::repeat("/*").take(256));
-        src.extend(std::iter::repeat("*/").take(256));
+        src.extend(std::iter::repeat("(*").take(256));
+        src.extend(std::iter::repeat("*)").take(256));
 
         let mut chars = Chars::new(&src);
         assert_eq!(
