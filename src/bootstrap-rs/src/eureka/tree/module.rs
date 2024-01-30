@@ -1,17 +1,17 @@
 use crate::communication::Error;
-use crate::eureka::tree::{zero_or_more, PaddedDefinition};
+use crate::eureka::tree::{zero_or_more, Definition};
 use crate::eureka::{Padding, Tokens};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Module {
     pub pre_definitions_padding: Option<Padding>,
-    pub definitions: Vec<PaddedDefinition>,
+    pub definitions: Vec<Definition>,
 }
 
 impl Module {
     pub fn parse(tokens: &mut Tokens) -> Result<Module, Error> {
         let pre_definitions_padding = tokens.try_take();
-        let definitions = zero_or_more(PaddedDefinition::parse)(tokens)?;
+        let definitions = zero_or_more(Definition::parse)(tokens)?;
 
         if let Some(token) = tokens.peek() {
             return Err(Error::UnexpectedToken(token));
@@ -50,15 +50,13 @@ mod tests {
         let actual = Module::parse(&mut tokens).unwrap();
         let expected = Module {
             pre_definitions_padding: None,
-            definitions: vec![PaddedDefinition {
-                definition: Definition::Function(FunctionDefinition {
-                    pre_identifier_padding: Padding::new(" "),
-                    identifier: Identifier::new("main"),
-                    pre_parenthesis_padding: None,
-                    pre_brace_padding: Some(Padding::new(" ")),
-                }),
+            definitions: vec![Definition::Function(FunctionDefinition {
+                pre_identifier_padding: Padding::new(" "),
+                identifier: Identifier::new("main"),
+                pre_parenthesis_padding: None,
+                pre_brace_padding: Some(Padding::new(" ")),
                 post_definition_padding: None,
-            }],
+            })],
         };
 
         assert_eq!(expected, actual);

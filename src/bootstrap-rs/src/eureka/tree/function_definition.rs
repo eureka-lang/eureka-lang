@@ -12,6 +12,7 @@ pub struct FunctionDefinition {
     pub pre_brace_padding: Option<Padding>,
     // Punctuation::LeftBrace
     // Punctuation::RightBrace
+    pub post_definition_padding: Option<Padding>,
 }
 
 impl FunctionDefinition {
@@ -30,12 +31,14 @@ impl FunctionDefinition {
         let pre_brace_padding = tokens.try_take();
         tokens.expect(Punctuation::LeftBrace)?;
         tokens.expect(Punctuation::RightBrace)?;
+        let post_definition_padding = tokens.try_take();
 
         Ok(Some(FunctionDefinition {
             pre_identifier_padding,
             identifier,
             pre_parenthesis_padding,
             pre_brace_padding,
+            post_definition_padding,
         }))
     }
 }
@@ -54,6 +57,7 @@ mod tests {
             identifier: Identifier::new("main"),
             pre_parenthesis_padding: None,
             pre_brace_padding: Some(Padding::new(" ")),
+            post_definition_padding: None,
         };
         assert_eq!(expected_function_definition, actual_function_definition);
     }

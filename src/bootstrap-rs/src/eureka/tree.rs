@@ -4,9 +4,6 @@ use crate::eureka::Tokens;
 pub use module::Module;
 mod module;
 
-pub use padded_definition::PaddedDefinition;
-mod padded_definition;
-
 pub use definition::Definition;
 mod definition;
 
@@ -54,6 +51,7 @@ mod tests {
             identifier: Identifier::new("main"),
             pre_parenthesis_padding: None,
             pre_brace_padding: Some(Padding::new(" ")),
+            post_definition_padding: None,
         }];
 
         assert_eq!(expected, actual.unwrap());
@@ -61,7 +59,7 @@ mod tests {
 
     #[test]
     fn zero_or_more_two() {
-        let mut tokens = Tokens::new("fn a(){}fn b(){}");
+        let mut tokens = Tokens::new("fn a(){} fn b(){}");
 
         let actual = zero_or_more(FunctionDefinition::parse)(&mut tokens);
         let expected: Vec<FunctionDefinition> = vec![
@@ -70,12 +68,14 @@ mod tests {
                 identifier: Identifier::new("a"),
                 pre_parenthesis_padding: None,
                 pre_brace_padding: None,
+                post_definition_padding: Some(Padding::new(" ")),
             },
             FunctionDefinition {
                 pre_identifier_padding: Padding::new(" "),
                 identifier: Identifier::new("b"),
                 pre_parenthesis_padding: None,
                 pre_brace_padding: None,
+                post_definition_padding: None,
             },
         ];
 
