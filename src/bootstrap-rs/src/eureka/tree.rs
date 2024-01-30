@@ -35,7 +35,7 @@ mod tests {
     use crate::eureka::{Identifier, Padding};
 
     #[test]
-    fn test_zero_or_more_parse_function_definition_zero() {
+    fn zero_or_more_zero() {
         let mut tokens = Tokens::new("");
 
         let actual = zero_or_more(FunctionDefinition::parse)(&mut tokens);
@@ -45,7 +45,7 @@ mod tests {
     }
 
     #[test]
-    fn test_zero_or_more_parse_function_definition_one() {
+    fn zero_or_more_one() {
         let mut tokens = Tokens::new("fn main() {}");
 
         let actual = zero_or_more(FunctionDefinition::parse)(&mut tokens);
@@ -60,7 +60,7 @@ mod tests {
     }
 
     #[test]
-    fn test_zero_or_more_parse_function_definition_two() {
+    fn zero_or_more_two() {
         let mut tokens = Tokens::new("fn a(){}fn b(){}");
 
         let actual = zero_or_more(FunctionDefinition::parse)(&mut tokens);
@@ -83,7 +83,7 @@ mod tests {
     }
 
     #[test]
-    fn test_zero_or_more_parse_function_definition_err() {
+    fn zero_or_more_error() {
         let mut tokens = Tokens::new("fn main( {}");
         assert_eq!(tokens.position(), Position::new(1, 1));
         assert!(zero_or_more(FunctionDefinition::parse)(&mut tokens).is_err());

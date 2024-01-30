@@ -81,25 +81,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn new_succeeds() {
+    fn new() {
         let padding = Padding::new(" ");
         assert_eq!(" ", padding.unlex());
     }
 
     #[test]
     #[should_panic(expected = "invalid value")]
-    fn new_fails_if_value_does_not_start_with_padding() {
+    fn new_panics_if_value_does_not_start_with_padding() {
         let _ = Padding::new("x");
     }
 
     #[test]
     #[should_panic(expected = "invalid value")]
-    fn new_fails_if_value_is_not_entirely_padding() {
+    fn new_panics_if_value_is_not_entirely_padding() {
         let _ = Padding::new(" x");
     }
 
     #[test]
-    fn lex_succeeds() {
+    fn lex_some() {
         for (src, expected_padding, expected_peek) in [
             (" ", " ", None),
             (" else", " ", Some('e')),
@@ -123,7 +123,7 @@ mod tests {
     }
 
     #[test]
-    fn lex_fails() {
+    fn lex_none() {
         for src in [
             "", "_", "-", "x", "x\n", "1", "+", "!", "~", "#", "#\n", "*/", "*/**/", "//**/",
         ] {

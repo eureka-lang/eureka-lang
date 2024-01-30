@@ -129,7 +129,7 @@ mod tests {
     }
 
     #[test]
-    fn non_empty_error() {
+    fn try_new_error() {
         for (src, expected_position) in [
             ("`", Position::new(1, 1)),
             ("fn`", Position::new(1, 3)),

@@ -38,7 +38,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn lex_succeeds() {
+    fn lex_some() {
         for (src, expected_punctuation, expected_peek) in [
             ("(a", Punctuation::LeftParenthesis, Some('a')),
             (")", Punctuation::RightParenthesis, None),
@@ -54,7 +54,7 @@ mod tests {
     }
 
     #[test]
-    fn lex_fails() {
+    fn lex_none() {
         for src in ["", "x", "1", "if", " ", "#"] {
             let mut chars = Chars::new(src);
             assert!(Punctuation::lex(&mut chars).is_none());

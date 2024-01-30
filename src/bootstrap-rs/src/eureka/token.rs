@@ -80,7 +80,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn lex_empty_main() {
+    fn lex_empty() {
+        let mut chars = Chars::new("");
+
+        assert!(chars.peek().is_none());
+        assert!(Token::lex(&mut chars).unwrap().is_none());
+
+        assert!(chars.peek().is_none());
+        assert!(Token::lex(&mut chars).unwrap().is_none());
+
+        assert!(chars.peek().is_none());
+    }
+
+    #[test]
+    fn lex_non_empty() {
         let mut chars = Chars::new("fn main() {}");
 
         let token = Token::lex(&mut chars).unwrap().unwrap();
@@ -108,19 +121,6 @@ mod tests {
         assert_eq!(token, Punctuation::RightBrace.into());
 
         assert!(Token::lex(&mut chars).unwrap().is_none());
-        assert!(chars.peek().is_none());
-    }
-
-    #[test]
-    fn lex_empty() {
-        let mut chars = Chars::new("");
-
-        assert!(chars.peek().is_none());
-        assert!(Token::lex(&mut chars).unwrap().is_none());
-
-        assert!(chars.peek().is_none());
-        assert!(Token::lex(&mut chars).unwrap().is_none());
-
         assert!(chars.peek().is_none());
     }
 }

@@ -46,7 +46,7 @@ mod tests {
     use crate::communication::Position;
 
     #[test]
-    fn parse_success() {
+    fn parse_some() {
         let mut tokens = Tokens::new("fn main() {}");
         let actual_function_definition = FunctionDefinition::parse(&mut tokens).unwrap().unwrap();
         let expected_function_definition = FunctionDefinition {
@@ -65,7 +65,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_err() {
+    fn parse_error() {
         let mut tokens = Tokens::new("fn main( {}");
         assert_eq!(tokens.position(), Position::new(1, 1));
         assert!(FunctionDefinition::parse(&mut tokens).is_err());

@@ -66,25 +66,25 @@ mod tests {
     use crate::eureka::Keyword;
 
     #[test]
-    fn new_succeeds() {
+    fn new() {
         let identifier = Identifier::new("i");
         assert_eq!("i", identifier.unlex());
     }
 
     #[test]
     #[should_panic(expected = "invalid value")]
-    fn new_fails_if_value_is_keyword() {
+    fn new_panics_if_value_is_keyword() {
         let _ = Identifier::new("if");
     }
 
     #[test]
     #[should_panic(expected = "invalid value")]
-    fn new_fails_if_value_is_not_entirely_identifier() {
+    fn new_panics_if_value_is_not_entirely_identifier() {
         let _ = Identifier::new("i+");
     }
 
     #[test]
-    fn lex_identifier() {
+    fn lex_some_identifier() {
         for (src, expected_identifier, expected_peek) in [
             ("_", "_", None),
             ("c", "c", None),
@@ -105,7 +105,7 @@ mod tests {
     }
 
     #[test]
-    fn lex_keyword() {
+    fn lex_some_keyword() {
         for (src, expected_keyword, expected_peek) in [
             ("fn", Keyword::Fn, None),
             ("if", Keyword::If, None),
@@ -123,7 +123,7 @@ mod tests {
     }
 
     #[test]
-    fn lex_fails() {
+    fn lex_none() {
         for src in [
             "", " ", "1", "2x", "99", "#if", "$", "+", "-", "@", "[", "^", "`", "{",
         ] {

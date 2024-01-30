@@ -85,7 +85,7 @@ mod tests {
     }
 
     #[test]
-    fn advance_position() {
+    fn advance() {
         let mut position = Position::start();
 
         assert_eq!((position.line(), position.column()), (1, 1));

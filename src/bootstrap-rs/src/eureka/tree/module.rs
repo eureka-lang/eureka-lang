@@ -44,7 +44,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_success() {
+    fn parse_non_empty() {
         let mut tokens = Tokens::new("fn main() {}");
 
         let actual = Module::parse(&mut tokens).unwrap();
@@ -65,7 +65,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_err() {
+    fn parse_error() {
         let mut tokens = Tokens::new("fn main() {}return");
 
         let actual = Module::parse(&mut tokens).unwrap_err();
