@@ -37,6 +37,12 @@ mod restricted {
             self.values.last().cloned()
         }
 
+        pub fn peek2(&self) -> Option<Token> {
+            self.values
+                .split_last()
+                .and_then(|(_, values)| values.last().cloned())
+        }
+
         pub fn pop(&mut self) -> Option<Token> {
             match self.values.pop() {
                 None => None,
@@ -99,6 +105,7 @@ mod tests {
         assert_eq!(tokens, Tokens::try_new("").unwrap());
 
         assert_eq!(tokens.peek(), None);
+        assert_eq!(tokens.peek2(), None);
         assert_eq!(tokens.pop(), None);
         assert_eq!(tokens.position(), Position::start());
     }
@@ -109,22 +116,30 @@ mod tests {
 
         assert_eq!(tokens.position(), Position::new(1, 1));
         assert_eq!(tokens.peek(), Some(Token::from(Keyword::Fn)));
+        assert_eq!(tokens.peek2(), Some(Token::from(Padding::new(" "))));
         assert_eq!(tokens.pop(), Some(Token::from(Keyword::Fn)));
 
         assert_eq!(tokens.position(), Position::new(1, 3));
         assert_eq!(tokens.peek(), Some(Token::from(Padding::new(" "))));
+        assert_eq!(
+            tokens.peek2(),
+            Some(Token::from(Identifier::new("example"))),
+        );
         assert_eq!(tokens.pop(), Some(Token::from(Padding::new(" "))));
 
         assert_eq!(tokens.position(), Position::new(1, 4));
         assert_eq!(tokens.peek(), Some(Token::from(Identifier::new("example"))));
+        assert_eq!(tokens.peek2(), None);
         assert_eq!(tokens.pop(), Some(Token::from(Identifier::new("example"))));
 
         assert_eq!(tokens.position(), Position::new(1, 11));
         assert_eq!(tokens.peek(), None);
+        assert_eq!(tokens.peek2(), None);
         assert_eq!(tokens.pop(), None);
 
         assert_eq!(tokens.position(), Position::new(1, 11));
         assert_eq!(tokens.peek(), None);
+        assert_eq!(tokens.peek2(), None);
         assert_eq!(tokens.pop(), None);
     }
 
