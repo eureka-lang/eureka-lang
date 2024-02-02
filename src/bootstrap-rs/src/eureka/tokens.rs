@@ -64,6 +64,16 @@ impl Tokens {
         Tokens::try_new(src).unwrap()
     }
 
+    pub fn peek_non_padding(&self) -> Option<Token> {
+        match self.peek() {
+            Some(Token::Padding(_)) => match self.peek2() {
+                Some(Token::Padding(_)) => unreachable!(),
+                option_token => option_token,
+            },
+            option_token => option_token,
+        }
+    }
+
     pub fn try_take<T: TryFrom<Option<Token>, Error = Error>>(&mut self) -> Option<T> {
         self.take().ok()
     }
@@ -160,6 +170,30 @@ mod tests {
             let position_error = Tokens::try_new(src).unwrap_err();
             assert_eq!(position_error.position, expected_position);
         }
+    }
+
+    #[test]
+    fn peek_non_padding() {
+        let mut tokens = Tokens::new("fn f(\n");
+
+        assert_eq!(tokens.peek(), tokens.peek_non_padding());
+        assert_eq!(tokens.pop(), Some(Token::from(Keyword::Fn)));
+
+        assert_eq!(tokens.peek2(), tokens.peek_non_padding());
+        assert_eq!(tokens.pop(), Some(Token::from(Padding::new(" "))));
+
+        assert_eq!(tokens.peek(), tokens.peek_non_padding());
+        assert_eq!(tokens.pop(), Some(Token::from(Identifier::new("f"))));
+
+        assert_eq!(tokens.peek(), tokens.peek_non_padding());
+        assert_eq!(tokens.pop(), Some(Punctuation::LeftParenthesis.into()));
+
+        assert_eq!(tokens.peek2(), tokens.peek_non_padding());
+        assert_eq!(tokens.pop(), Some(Token::from(Padding::new("\n"))));
+
+        assert!(tokens.peek().is_none());
+        assert!(tokens.peek2().is_none());
+        assert!(tokens.peek_non_padding().is_none());
     }
 
     #[test]
