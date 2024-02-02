@@ -47,11 +47,11 @@ mod tests {
 
         let actual = zero_or_more(FunctionDefinition::parse)(&mut tokens);
         let expected: Vec<FunctionDefinition> = vec![FunctionDefinition {
+            pre_definition_padding: None,
             pre_identifier_padding: Padding::new(" "),
             identifier: Identifier::new("main"),
             pre_parenthesis_padding: None,
             pre_brace_padding: Some(Padding::new(" ")),
-            post_definition_padding: None,
         }];
 
         assert_eq!(expected, actual.unwrap());
@@ -64,18 +64,18 @@ mod tests {
         let actual = zero_or_more(FunctionDefinition::parse)(&mut tokens);
         let expected: Vec<FunctionDefinition> = vec![
             FunctionDefinition {
+                pre_definition_padding: None,
                 pre_identifier_padding: Padding::new(" "),
                 identifier: Identifier::new("a"),
                 pre_parenthesis_padding: None,
                 pre_brace_padding: None,
-                post_definition_padding: Some(Padding::new(" ")),
             },
             FunctionDefinition {
+                pre_definition_padding: Some(Padding::new(" ")),
                 pre_identifier_padding: Padding::new(" "),
                 identifier: Identifier::new("b"),
                 pre_parenthesis_padding: None,
                 pre_brace_padding: None,
-                post_definition_padding: None,
             },
         ];
 

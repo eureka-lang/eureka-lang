@@ -4,22 +4,22 @@ use crate::eureka::{Padding, Tokens};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Module {
-    pub pre_definitions_padding: Option<Padding>,
     pub definitions: Vec<Definition>,
+    pub post_definitions_padding: Option<Padding>,
 }
 
 impl Module {
     pub fn parse(tokens: &mut Tokens) -> Result<Module, Error> {
-        let pre_definitions_padding = tokens.try_take();
         let definitions = zero_or_more(Definition::parse)(tokens)?;
+        let post_definitions_padding = tokens.try_take();
 
         if let Some(token) = tokens.peek() {
             return Err(Error::UnexpectedToken(token));
         }
 
         Ok(Module {
-            pre_definitions_padding,
             definitions,
+            post_definitions_padding,
         })
     }
 }
@@ -28,7 +28,7 @@ impl Module {
 mod tests {
     use super::*;
     use crate::eureka::tree::{Definition, FunctionDefinition};
-    use crate::eureka::{Identifier, Keyword, Padding};
+    use crate::eureka::{Identifier, Keyword};
 
     #[test]
     fn parse_empty() {
@@ -36,8 +36,8 @@ mod tests {
 
         let actual = Module::parse(&mut tokens).unwrap();
         let expected = Module {
-            pre_definitions_padding: None,
             definitions: Vec::new(),
+            post_definitions_padding: None,
         };
 
         assert_eq!(expected, actual);
@@ -45,18 +45,18 @@ mod tests {
 
     #[test]
     fn parse_non_empty() {
-        let mut tokens = Tokens::new("fn main() {}");
+        let mut tokens = Tokens::new(" fn main() {}\n");
 
         let actual = Module::parse(&mut tokens).unwrap();
         let expected = Module {
-            pre_definitions_padding: None,
             definitions: vec![Definition::Function(FunctionDefinition {
+                pre_definition_padding: Some(Padding::new(" ")),
                 pre_identifier_padding: Padding::new(" "),
                 identifier: Identifier::new("main"),
                 pre_parenthesis_padding: None,
                 pre_brace_padding: Some(Padding::new(" ")),
-                post_definition_padding: None,
             })],
+            post_definitions_padding: Some(Padding::new("\n")),
         };
 
         assert_eq!(expected, actual);

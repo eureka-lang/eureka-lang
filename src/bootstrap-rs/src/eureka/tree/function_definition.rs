@@ -3,6 +3,7 @@ use crate::eureka::{Identifier, Keyword, Padding, Punctuation, Token, Tokens};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct FunctionDefinition {
+    pub pre_definition_padding: Option<Padding>,
     // Keyword::Fn
     pub pre_identifier_padding: Padding,
     pub identifier: Identifier,
@@ -12,17 +13,16 @@ pub struct FunctionDefinition {
     pub pre_brace_padding: Option<Padding>,
     // Punctuation::LeftBrace
     // Punctuation::RightBrace
-    pub post_definition_padding: Option<Padding>,
 }
 
 impl FunctionDefinition {
     pub fn parse(tokens: &mut Tokens) -> Result<Option<FunctionDefinition>, Error> {
-        if tokens.peek() != Some(Token::Keyword(Keyword::Fn)) {
+        if tokens.peek_non_padding() != Some(Token::Keyword(Keyword::Fn)) {
             return Ok(None);
         }
 
-        tokens.pop();
-
+        let pre_definition_padding = tokens.try_take();
+        tokens.expect(Keyword::Fn)?;
         let pre_identifier_padding = tokens.take()?;
         let identifier = tokens.take()?;
         let pre_parenthesis_padding = tokens.try_take();
@@ -31,14 +31,13 @@ impl FunctionDefinition {
         let pre_brace_padding = tokens.try_take();
         tokens.expect(Punctuation::LeftBrace)?;
         tokens.expect(Punctuation::RightBrace)?;
-        let post_definition_padding = tokens.try_take();
 
         Ok(Some(FunctionDefinition {
+            pre_definition_padding,
             pre_identifier_padding,
             identifier,
             pre_parenthesis_padding,
             pre_brace_padding,
-            post_definition_padding,
         }))
     }
 }
@@ -53,11 +52,11 @@ mod tests {
         let mut tokens = Tokens::new("fn main() {}");
         let actual_function_definition = FunctionDefinition::parse(&mut tokens).unwrap().unwrap();
         let expected_function_definition = FunctionDefinition {
+            pre_definition_padding: None,
             pre_identifier_padding: Padding::new(" "),
             identifier: Identifier::new("main"),
             pre_parenthesis_padding: None,
             pre_brace_padding: Some(Padding::new(" ")),
-            post_definition_padding: None,
         };
         assert_eq!(expected_function_definition, actual_function_definition);
     }
