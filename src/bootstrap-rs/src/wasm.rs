@@ -1,4 +1,5 @@
 mod leb128;
+mod types;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Module;
