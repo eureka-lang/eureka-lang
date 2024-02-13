@@ -1,29 +1,15 @@
-pub struct EncodeU64 {
-    value: Option<u64>,
-}
+use crate::collections::Push;
 
-pub fn encode_u64(value: u64) -> EncodeU64 {
-    EncodeU64 { value: Some(value) }
-}
+pub fn encode_u64(mut value: u64, buffer: &mut impl Push<u8>) {
+    loop {
+        let least_significant_byte = value as u8;
+        value >>= 7;
 
-impl Iterator for EncodeU64 {
-    type Item = u8;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.value {
-            None => None,
-            Some(value) => {
-                let least_significant_byte = value as u8;
-                let new_value = value >> 7;
-
-                if new_value != 0 {
-                    self.value = Some(new_value);
-                    Some(least_significant_byte | 0x80)
-                } else {
-                    self.value = None;
-                    Some(least_significant_byte)
-                }
-            }
+        if value != 0 {
+            buffer.push(least_significant_byte | 0x80);
+        } else {
+            buffer.push(least_significant_byte);
+            break;
         }
     }
 }
@@ -34,7 +20,7 @@ mod tests {
 
     #[test]
     fn test_encode_u64() {
-        for (value, expected) in [
+        for (value, expected_buffer) in [
             (0, vec![0x00]),
             (1, vec![0x01]),
             (126, vec![0x7E]),
@@ -54,8 +40,9 @@ mod tests {
                 vec![0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01],
             ),
         ] {
-            let actual = Vec::from_iter(encode_u64(value));
-            assert_eq!(expected, actual);
+            let mut actual_buffer = Vec::new();
+            encode_u64(value, &mut actual_buffer);
+            assert_eq!(expected_buffer, actual_buffer);
         }
     }
 }
