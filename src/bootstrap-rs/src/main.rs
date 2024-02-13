@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+mod collections;
 mod communication;
 mod eureka;
 mod language;
