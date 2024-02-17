@@ -1,3 +1,4 @@
+use crate::wasm::{leb128, Encode};
 use std::ops::Index;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -34,6 +35,16 @@ impl<T> Index<u32> for Vector<T> {
     }
 }
 
+impl<T: Encode> Encode for Vector<T> {
+    fn encode(&self, buffer: &mut Vec<u8>) {
+        leb128::encode_u32(self.len(), buffer);
+
+        for i in 0..self.len() {
+            self[i].encode(buffer);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -52,5 +63,40 @@ mod tests {
         assert_eq!(2, vector.len());
         assert_eq!(NumberType::I32, vector[0]);
         assert_eq!(NumberType::I64, vector[1]);
+    }
+
+    #[test]
+    fn encode_empty() {
+        let vector: Vector<NumberType> = Vector::new();
+
+        let mut actual_buffer = Vec::new();
+        vector.encode(&mut actual_buffer);
+
+        let expected_buffer = vec![
+            0x00, // vector length
+        ];
+
+        assert_eq!(expected_buffer, actual_buffer);
+    }
+
+    #[test]
+    fn encode_non_empty() {
+        let mut vector = Vector::new();
+
+        vector.push(NumberType::I32);
+        vector.push(NumberType::I32);
+        vector.push(NumberType::I64);
+
+        let mut actual_buffer = Vec::new();
+        vector.encode(&mut actual_buffer);
+
+        let expected_buffer = vec![
+            0x03, // vector length
+            0x7F, // type i32
+            0x7F, // type i32
+            0x7E, // type i64
+        ];
+
+        assert_eq!(expected_buffer, actual_buffer);
     }
 }
