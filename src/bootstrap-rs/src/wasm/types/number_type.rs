@@ -1,4 +1,4 @@
-use crate::collections::Push;
+use crate::wasm::Encode;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum NumberType {
@@ -6,8 +6,8 @@ pub enum NumberType {
     I64,
 }
 
-impl NumberType {
-    pub fn encode(&self, buffer: &mut impl Push<u8>) {
+impl Encode for NumberType {
+    fn encode(&self, buffer: &mut Vec<u8>) {
         let byte = match self {
             Self::I32 => 0x7F,
             Self::I64 => 0x7E,

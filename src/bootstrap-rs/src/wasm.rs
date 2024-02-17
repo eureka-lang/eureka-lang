@@ -1,3 +1,6 @@
+pub use encode::Encode;
+mod encode;
+
 mod leb128;
 mod types;
 
