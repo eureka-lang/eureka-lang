@@ -1,6 +1,9 @@
 mod leb128;
 mod types;
 
+pub use vector::Vector;
+mod vector;
+
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Module;
 
