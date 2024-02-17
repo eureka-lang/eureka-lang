@@ -14,6 +14,10 @@ pub fn encode_u64(mut value: u64, buffer: &mut impl Push<u8>) {
     }
 }
 
+pub fn encode_u32(value: u32, buffer: &mut impl Push<u8>) {
+    encode_u64(value.into(), buffer);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
