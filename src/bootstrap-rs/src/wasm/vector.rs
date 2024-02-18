@@ -1,30 +1,35 @@
 use crate::wasm::{leb128, Encode};
+pub use restricted::Vector;
 use std::ops::Index;
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Vector<T> {
-    values: Vec<T>,
+mod restricted {
+    #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+    pub struct Vector<T> {
+        values: Vec<T>,
+    }
+
+    impl<T> Vector<T> {
+        const MAX_LEN: usize = u32::MAX as usize;
+
+        pub const fn new() -> Vector<T> {
+            Vector { values: Vec::new() }
+        }
+
+        pub const fn values(&self) -> &Vec<T> {
+            &self.values
+        }
+
+        pub fn push(&mut self, value: T) {
+            if self.values.len() >= Self::MAX_LEN {
+                panic!("vector max len exceeded");
+            }
+
+            self.values.push(value);
+        }
+    }
 }
 
 impl<T> Vector<T> {
-    const MAX_LEN: usize = u32::MAX as usize;
-
-    pub const fn new() -> Vector<T> {
-        Vector { values: Vec::new() }
-    }
-
-    pub const fn values(&self) -> &Vec<T> {
-        &self.values
-    }
-
-    pub fn push(&mut self, value: T) {
-        if self.values.len() >= Self::MAX_LEN {
-            panic!("vector max len exceeded");
-        }
-
-        self.values.push(value);
-    }
-
     pub fn len(&self) -> u32 {
         self.values().len() as u32
     }
