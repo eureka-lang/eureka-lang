@@ -13,6 +13,10 @@ impl<T> Vector<T> {
         Vector { values: Vec::new() }
     }
 
+    pub const fn values(&self) -> &Vec<T> {
+        &self.values
+    }
+
     pub fn push(&mut self, value: T) {
         if self.values.len() >= Self::MAX_LEN {
             panic!("vector max len exceeded");
@@ -22,7 +26,7 @@ impl<T> Vector<T> {
     }
 
     pub fn len(&self) -> u32 {
-        self.values.len() as u32
+        self.values().len() as u32
     }
 }
 
@@ -31,7 +35,7 @@ impl<T> Index<u32> for Vector<T> {
 
     fn index(&self, index: u32) -> &Self::Output {
         let index_usize: usize = index.try_into().unwrap();
-        &self.values[index_usize]
+        &self.values()[index_usize]
     }
 }
 
