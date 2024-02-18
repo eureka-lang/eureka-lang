@@ -13,3 +13,9 @@ impl Encode for ValueType {
         }
     }
 }
+
+impl From<NumberType> for ValueType {
+    fn from(value: NumberType) -> ValueType {
+        ValueType::NumberType(value)
+    }
+}

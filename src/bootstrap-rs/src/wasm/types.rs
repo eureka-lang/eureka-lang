@@ -1,3 +1,6 @@
+pub use function_type::FunctionType;
+mod function_type;
+
 pub use number_type::NumberType;
 mod number_type;
 
