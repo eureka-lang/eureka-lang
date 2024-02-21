@@ -4,6 +4,9 @@ mod encode;
 pub use instruction::Instruction;
 mod instruction;
 
+pub use instruction_sequence::InstructionSequence;
+mod instruction_sequence;
+
 mod leb128;
 mod types;
 
