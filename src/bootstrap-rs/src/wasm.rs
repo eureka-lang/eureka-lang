@@ -1,6 +1,9 @@
 pub use encode::Encode;
 mod encode;
 
+pub use instruction::Instruction;
+mod instruction;
+
 mod leb128;
 mod types;
 
