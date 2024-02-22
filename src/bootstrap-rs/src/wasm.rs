@@ -1,6 +1,9 @@
 pub use encode::Encode;
 mod encode;
 
+pub use expression::Expression;
+mod expression;
+
 pub use instruction::Instruction;
 mod instruction;
 

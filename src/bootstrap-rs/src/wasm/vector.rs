@@ -33,6 +33,10 @@ impl<T> Vector<T> {
     pub fn len(&self) -> u32 {
         self.values().len() as u32
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 }
 
 impl<T> Index<u32> for Vector<T> {
@@ -62,13 +66,16 @@ mod tests {
     #[test]
     fn test_vector() {
         let mut vector = Vector::new();
+        assert!(vector.is_empty());
         assert_eq!(0, vector.len());
 
         vector.push(NumberType::I32);
+        assert!(!vector.is_empty());
         assert_eq!(1, vector.len());
         assert_eq!(NumberType::I32, vector[0]);
 
         vector.push(NumberType::I64);
+        assert!(!vector.is_empty());
         assert_eq!(2, vector.len());
         assert_eq!(NumberType::I32, vector[0]);
         assert_eq!(NumberType::I64, vector[1]);
