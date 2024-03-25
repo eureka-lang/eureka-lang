@@ -1,4 +1,5 @@
-pub use crate::language::Chars;
+pub use chars::Chars;
+mod chars;
 
 pub use token::{Identifier, Keyword, Padding, Punctuation, Token};
 mod token;
